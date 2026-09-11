@@ -4,14 +4,21 @@ import 'package:intl/intl.dart';
 
 import '../../app/providers.dart';
 import '../../core/utils/money.dart';
+import '../../data/database/daos/transaction_dao.dart';
 import '../../widgets/amount_input.dart';
 import '../../widgets/category_picker.dart';
 
 /// Manual transaction entry — the primary, always-available way to log
 /// spending or income. Kept to one screen with no required fields beyond
 /// amount and category, so logging a transaction takes a few seconds.
+///
+/// Doubles as the edit screen: pass [existing] to prefill the form and
+/// switch the save button to updating that transaction, with a delete
+/// option in the app bar.
 class TransactionEntryScreen extends ConsumerStatefulWidget {
-  const TransactionEntryScreen({super.key});
+  final TransactionWithCategory? existing;
+
+  const TransactionEntryScreen({super.key, this.existing});
 
   @override
   ConsumerState<TransactionEntryScreen> createState() =>
@@ -26,6 +33,20 @@ class _TransactionEntryScreenState
   DateTime _selectedDate = DateTime.now();
   String? _amountError;
   bool _saving = false;
+
+  bool get _isEditing => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing?.transaction;
+    if (existing != null) {
+      _amountController.text = Money.formatPlain(existing.amountCents);
+      _noteController.text = existing.note ?? '';
+      _selectedCategoryId = existing.categoryId;
+      _selectedDate = existing.date;
+    }
+  }
 
   @override
   void dispose() {
@@ -58,15 +79,52 @@ class _TransactionEntryScreenState
     }
 
     setState(() => _saving = true);
-    await ref.read(transactionRepositoryProvider).addTransaction(
-          amountCents: cents,
-          categoryId: _selectedCategoryId!,
-          date: _selectedDate,
-          note: _noteController.text.trim().isEmpty
-              ? null
-              : _noteController.text.trim(),
-        );
+    final note =
+        _noteController.text.trim().isEmpty ? null : _noteController.text.trim();
+    final repo = ref.read(transactionRepositoryProvider);
+    if (_isEditing) {
+      await repo.updateTransaction(
+        widget.existing!.transaction,
+        amountCents: cents,
+        categoryId: _selectedCategoryId!,
+        date: _selectedDate,
+        note: note,
+      );
+    } else {
+      await repo.addTransaction(
+        amountCents: cents,
+        categoryId: _selectedCategoryId!,
+        date: _selectedDate,
+        note: note,
+      );
+    }
 
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _delete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete transaction?'),
+        content: const Text('This can\'t be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await ref
+        .read(transactionRepositoryProvider)
+        .deleteTransaction(widget.existing!.transaction.id);
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -75,7 +133,17 @@ class _TransactionEntryScreenState
     final categoriesAsync = ref.watch(activeCategoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add transaction')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit transaction' : 'Add transaction'),
+        actions: [
+          if (_isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _saving ? null : _delete,
+              tooltip: 'Delete',
+            ),
+        ],
+      ),
       body: categoriesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
@@ -128,7 +196,7 @@ class _TransactionEntryScreenState
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save transaction'),
+                      : Text(_isEditing ? 'Save changes' : 'Save transaction'),
                 ),
               ],
             ),

@@ -76,4 +76,55 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 1));
   });
+
+  testWidgets('history lets you edit and delete a logged transaction', (
+    tester,
+  ) async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        child: const BudgetingApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Log a transaction to edit.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '42.50');
+    await tester.tap(find.text('Groceries'));
+    await tester.tap(find.text('Save transaction'));
+    await tester.pumpAndSettle();
+
+    // Switch to the History tab and open it.
+    await tester.tap(find.text('History'));
+    await tester.pumpAndSettle();
+    expect(find.text('-\$42.50'), findsOneWidget);
+
+    await tester.tap(find.text('Groceries'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit transaction'), findsOneWidget);
+
+    // Editing updates the amount shown back in History.
+    await tester.enterText(find.byType(TextField).first, '55.00');
+    await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+    expect(find.text('-\$55.00'), findsOneWidget);
+
+    // Deleting removes it and the empty state reappears.
+    await tester.tap(find.text('Groceries'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No transactions yet'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 1));
+  });
 }

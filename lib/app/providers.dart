@@ -67,6 +67,12 @@ final transactionsInPeriodProvider =
       .watchTransactionsInRange(range.start, range.end);
 });
 
+/// All transactions, newest first — backs the history screen, which
+/// isn't scoped to the dashboard's currently selected week/month.
+final allTransactionsProvider = StreamProvider<List<TransactionWithCategory>>((ref) {
+  return ref.watch(transactionRepositoryProvider).watchAll();
+});
+
 final spendingSummaryProvider = Provider<AsyncValue<SpendingSummary>>((ref) {
   final transactions = ref.watch(transactionsInPeriodProvider);
   final service = ref.watch(spendingBreakdownServiceProvider);

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../features/categories/category_list_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
+import '../features/history/history_screen.dart';
 import '../features/transaction_entry/transaction_entry_screen.dart';
 
 /// Bottom-nav shell: Dashboard is the default landing screen since it's
-/// what makes the app worth opening daily; Categories is one tab away.
-/// Adding a transaction is always one tap away via the FAB, from either
-/// tab.
+/// what makes the app worth opening daily; History and Categories are
+/// one tab away. Adding a transaction is always one tap away via the
+/// FAB, from any tab.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -20,6 +21,7 @@ class _HomeShellState extends State<HomeShell> {
 
   static const _screens = [
     DashboardScreen(),
+    HistoryScreen(),
     CategoryListScreen(),
   ];
 
@@ -46,6 +48,11 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'History',
           ),
           NavigationDestination(
             icon: Icon(Icons.category_outlined),

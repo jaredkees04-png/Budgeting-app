@@ -18,6 +18,12 @@ class TransactionRepository {
     return _db.transactionDao.watchTransactionsInRange(start, end);
   }
 
+  /// All transactions, newest first, regardless of the dashboard's
+  /// selected period — backs the history/edit flow.
+  Stream<List<TransactionWithCategory>> watchAll() {
+    return _db.transactionDao.watchAll();
+  }
+
   Future<void> addTransaction({
     required int amountCents,
     required String categoryId,
@@ -39,17 +45,21 @@ class TransactionRepository {
     );
   }
 
-  Future<void> updateTransaction(Transaction existing, {
-    int? amountCents,
-    String? categoryId,
-    DateTime? date,
-    String? note,
+  /// Replaces the editable fields of [existing] outright — the edit
+  /// screen always submits the full form state, so `note: null` here
+  /// means "clear the note," not "leave it unchanged."
+  Future<void> updateTransaction(
+    Transaction existing, {
+    required int amountCents,
+    required String categoryId,
+    required DateTime date,
+    required String? note,
   }) {
     final updated = existing.copyWith(
-      amountCents: amountCents ?? existing.amountCents,
-      categoryId: categoryId ?? existing.categoryId,
-      date: date ?? existing.date,
-      note: Value(note ?? existing.note),
+      amountCents: amountCents,
+      categoryId: categoryId,
+      date: date,
+      note: Value(note),
       updatedAt: DateTime.now(),
     );
     return _db.transactionDao.updateTransaction(updated.toCompanion(false));

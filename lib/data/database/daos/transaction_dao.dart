@@ -15,17 +15,32 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     DateTime start,
     DateTime end,
   ) {
-    final query = select(transactions).join([
-      innerJoin(
-        categories,
-        categories.id.equalsExp(transactions.categoryId),
-      ),
-    ])
-      ..where(
-        transactions.date.isBiggerOrEqualValue(start) &
-            transactions.date.isSmallerThanValue(end),
-      )
-      ..orderBy([OrderingTerm.desc(transactions.date)]);
+    return _watchJoined(
+      (query) => query
+        ..where(
+          transactions.date.isBiggerOrEqualValue(start) &
+              transactions.date.isSmallerThanValue(end),
+        ),
+    );
+  }
+
+  /// All transactions, newest first — used by the history screen so a
+  /// mistake can be found and fixed regardless of the dashboard's
+  /// currently selected week/month.
+  Stream<List<TransactionWithCategory>> watchAll() {
+    return _watchJoined((query) => query);
+  }
+
+  Stream<List<TransactionWithCategory>> _watchJoined(
+    JoinedSelectStatement<HasResultSet, dynamic> Function(
+      JoinedSelectStatement<HasResultSet, dynamic> query,
+    ) apply,
+  ) {
+    final query = apply(
+      select(transactions).join([
+        innerJoin(categories, categories.id.equalsExp(transactions.categoryId)),
+      ]),
+    )..orderBy([OrderingTerm.desc(transactions.date)]);
 
     return query.watch().map(
           (rows) => rows
