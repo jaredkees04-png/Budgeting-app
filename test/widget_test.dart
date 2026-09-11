@@ -77,6 +77,64 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1));
   });
 
+  testWidgets(
+    'the 50/30/20 guideline card renders real figures, not blank',
+    (tester) async {
+      // Regression test: the settings row's id ended up 1 (SQLite assigns
+      // the next rowid when an INTEGER PRIMARY KEY is omitted from an
+      // INSERT, ignoring its declared default of 0), so every settings
+      // query filtered by id.equals(0) silently matched nothing and this
+      // card rendered as an empty SizedBox — with no test ever asserting
+      // on its actual content, that went unnoticed.
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [appDatabaseProvider.overrideWithValue(db)],
+          child: const BudgetingApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '1000');
+      await tester.tap(find.text('Income'));
+      await tester.tap(find.text('Save transaction'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '600');
+      await tester.tap(find.text('Groceries'));
+      await tester.tap(find.text('Save transaction'));
+      await tester.pumpAndSettle();
+
+      // The card is below the fold in the test surface's default size;
+      // ListView only mounts elements for children near the viewport, so
+      // it has to actually be scrolled into view rather than just present
+      // in the list's widget/data — otherwise find() can't see it.
+      await tester.scrollUntilVisible(
+        find.text('50/30/20 guideline'),
+        300,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('50/30/20 guideline'), findsOneWidget);
+      // Groceries is the only "needs" spending: $600 of $1000 income.
+      expect(find.text('60% / ~50%'), findsOneWidget);
+      expect(
+        find.textContaining("You're at 60% on Groceries"),
+        findsOneWidget,
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 1));
+    },
+  );
+
   testWidgets('history lets you edit and delete a logged transaction', (
     tester,
   ) async {

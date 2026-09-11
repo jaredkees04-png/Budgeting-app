@@ -21,6 +21,13 @@ const Map<String, IconData> kCategoryIconOptions = {
   'flight': Icons.flight,
   'pets': Icons.pets,
   'savings': Icons.savings,
+  'restaurant': Icons.restaurant,
+  'movie': Icons.movie,
+  'shopping_bag': Icons.shopping_bag,
+  'fitness_center': Icons.fitness_center,
+  'card_giftcard': Icons.card_giftcard,
+  'checkroom': Icons.checkroom,
+  'build': Icons.build,
   'category': Icons.category,
 };
 
@@ -33,6 +40,9 @@ const List<String> kCategoryColorOptions = [
   '#00838F',
   '#6D4C41',
   '#455A64',
+  '#C2185B',
+  '#3949AB',
+  '#37474F',
 ];
 
 IconData iconForKey(String key) => kCategoryIconOptions[key] ?? Icons.category;

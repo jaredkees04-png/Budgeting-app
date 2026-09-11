@@ -1739,6 +1739,30 @@ class $AppSettingsTableTable extends AppSettingsTable
     requiredDuringInsert: false,
     defaultValue: const Constant(20),
   );
+  static const VerificationMeta _themeModeMeta = const VerificationMeta(
+    'themeMode',
+  );
+  @override
+  late final GeneratedColumn<int> themeMode = GeneratedColumn<int>(
+    'theme_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _accentColorMeta = const VerificationMeta(
+    'accentColor',
+  );
+  @override
+  late final GeneratedColumn<int> accentColor = GeneratedColumn<int>(
+    'accent_color',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0xFF2E7D32),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1746,6 +1770,8 @@ class $AppSettingsTableTable extends AppSettingsTable
     needsTargetPct,
     wantsTargetPct,
     savingsTargetPct,
+    themeMode,
+    accentColor,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1798,6 +1824,21 @@ class $AppSettingsTableTable extends AppSettingsTable
         ),
       );
     }
+    if (data.containsKey('theme_mode')) {
+      context.handle(
+        _themeModeMeta,
+        themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta),
+      );
+    }
+    if (data.containsKey('accent_color')) {
+      context.handle(
+        _accentColorMeta,
+        accentColor.isAcceptableOrUnknown(
+          data['accent_color']!,
+          _accentColorMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1827,6 +1868,14 @@ class $AppSettingsTableTable extends AppSettingsTable
         DriftSqlType.int,
         data['${effectivePrefix}savings_target_pct'],
       )!,
+      themeMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}theme_mode'],
+      )!,
+      accentColor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}accent_color'],
+      )!,
     );
   }
 
@@ -1843,12 +1892,21 @@ class AppSettingsTableData extends DataClass
   final int needsTargetPct;
   final int wantsTargetPct;
   final int savingsTargetPct;
+
+  /// Flutter's ThemeMode.index: 0 = system, 1 = light, 2 = dark.
+  final int themeMode;
+
+  /// ARGB color value used as the Material 3 seed color for the whole
+  /// app's theme. Defaults to the app's original green.
+  final int accentColor;
   const AppSettingsTableData({
     required this.id,
     required this.selectedPeriod,
     required this.needsTargetPct,
     required this.wantsTargetPct,
     required this.savingsTargetPct,
+    required this.themeMode,
+    required this.accentColor,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1858,6 +1916,8 @@ class AppSettingsTableData extends DataClass
     map['needs_target_pct'] = Variable<int>(needsTargetPct);
     map['wants_target_pct'] = Variable<int>(wantsTargetPct);
     map['savings_target_pct'] = Variable<int>(savingsTargetPct);
+    map['theme_mode'] = Variable<int>(themeMode);
+    map['accent_color'] = Variable<int>(accentColor);
     return map;
   }
 
@@ -1868,6 +1928,8 @@ class AppSettingsTableData extends DataClass
       needsTargetPct: Value(needsTargetPct),
       wantsTargetPct: Value(wantsTargetPct),
       savingsTargetPct: Value(savingsTargetPct),
+      themeMode: Value(themeMode),
+      accentColor: Value(accentColor),
     );
   }
 
@@ -1882,6 +1944,8 @@ class AppSettingsTableData extends DataClass
       needsTargetPct: serializer.fromJson<int>(json['needsTargetPct']),
       wantsTargetPct: serializer.fromJson<int>(json['wantsTargetPct']),
       savingsTargetPct: serializer.fromJson<int>(json['savingsTargetPct']),
+      themeMode: serializer.fromJson<int>(json['themeMode']),
+      accentColor: serializer.fromJson<int>(json['accentColor']),
     );
   }
   @override
@@ -1893,6 +1957,8 @@ class AppSettingsTableData extends DataClass
       'needsTargetPct': serializer.toJson<int>(needsTargetPct),
       'wantsTargetPct': serializer.toJson<int>(wantsTargetPct),
       'savingsTargetPct': serializer.toJson<int>(savingsTargetPct),
+      'themeMode': serializer.toJson<int>(themeMode),
+      'accentColor': serializer.toJson<int>(accentColor),
     };
   }
 
@@ -1902,12 +1968,16 @@ class AppSettingsTableData extends DataClass
     int? needsTargetPct,
     int? wantsTargetPct,
     int? savingsTargetPct,
+    int? themeMode,
+    int? accentColor,
   }) => AppSettingsTableData(
     id: id ?? this.id,
     selectedPeriod: selectedPeriod ?? this.selectedPeriod,
     needsTargetPct: needsTargetPct ?? this.needsTargetPct,
     wantsTargetPct: wantsTargetPct ?? this.wantsTargetPct,
     savingsTargetPct: savingsTargetPct ?? this.savingsTargetPct,
+    themeMode: themeMode ?? this.themeMode,
+    accentColor: accentColor ?? this.accentColor,
   );
   AppSettingsTableData copyWithCompanion(AppSettingsTableCompanion data) {
     return AppSettingsTableData(
@@ -1924,6 +1994,10 @@ class AppSettingsTableData extends DataClass
       savingsTargetPct: data.savingsTargetPct.present
           ? data.savingsTargetPct.value
           : this.savingsTargetPct,
+      themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
+      accentColor: data.accentColor.present
+          ? data.accentColor.value
+          : this.accentColor,
     );
   }
 
@@ -1934,7 +2008,9 @@ class AppSettingsTableData extends DataClass
           ..write('selectedPeriod: $selectedPeriod, ')
           ..write('needsTargetPct: $needsTargetPct, ')
           ..write('wantsTargetPct: $wantsTargetPct, ')
-          ..write('savingsTargetPct: $savingsTargetPct')
+          ..write('savingsTargetPct: $savingsTargetPct, ')
+          ..write('themeMode: $themeMode, ')
+          ..write('accentColor: $accentColor')
           ..write(')'))
         .toString();
   }
@@ -1946,6 +2022,8 @@ class AppSettingsTableData extends DataClass
     needsTargetPct,
     wantsTargetPct,
     savingsTargetPct,
+    themeMode,
+    accentColor,
   );
   @override
   bool operator ==(Object other) =>
@@ -1955,7 +2033,9 @@ class AppSettingsTableData extends DataClass
           other.selectedPeriod == this.selectedPeriod &&
           other.needsTargetPct == this.needsTargetPct &&
           other.wantsTargetPct == this.wantsTargetPct &&
-          other.savingsTargetPct == this.savingsTargetPct);
+          other.savingsTargetPct == this.savingsTargetPct &&
+          other.themeMode == this.themeMode &&
+          other.accentColor == this.accentColor);
 }
 
 class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
@@ -1964,12 +2044,16 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
   final Value<int> needsTargetPct;
   final Value<int> wantsTargetPct;
   final Value<int> savingsTargetPct;
+  final Value<int> themeMode;
+  final Value<int> accentColor;
   const AppSettingsTableCompanion({
     this.id = const Value.absent(),
     this.selectedPeriod = const Value.absent(),
     this.needsTargetPct = const Value.absent(),
     this.wantsTargetPct = const Value.absent(),
     this.savingsTargetPct = const Value.absent(),
+    this.themeMode = const Value.absent(),
+    this.accentColor = const Value.absent(),
   });
   AppSettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -1977,6 +2061,8 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     this.needsTargetPct = const Value.absent(),
     this.wantsTargetPct = const Value.absent(),
     this.savingsTargetPct = const Value.absent(),
+    this.themeMode = const Value.absent(),
+    this.accentColor = const Value.absent(),
   });
   static Insertable<AppSettingsTableData> custom({
     Expression<int>? id,
@@ -1984,6 +2070,8 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Expression<int>? needsTargetPct,
     Expression<int>? wantsTargetPct,
     Expression<int>? savingsTargetPct,
+    Expression<int>? themeMode,
+    Expression<int>? accentColor,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1991,6 +2079,8 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
       if (needsTargetPct != null) 'needs_target_pct': needsTargetPct,
       if (wantsTargetPct != null) 'wants_target_pct': wantsTargetPct,
       if (savingsTargetPct != null) 'savings_target_pct': savingsTargetPct,
+      if (themeMode != null) 'theme_mode': themeMode,
+      if (accentColor != null) 'accent_color': accentColor,
     });
   }
 
@@ -2000,6 +2090,8 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Value<int>? needsTargetPct,
     Value<int>? wantsTargetPct,
     Value<int>? savingsTargetPct,
+    Value<int>? themeMode,
+    Value<int>? accentColor,
   }) {
     return AppSettingsTableCompanion(
       id: id ?? this.id,
@@ -2007,6 +2099,8 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
       needsTargetPct: needsTargetPct ?? this.needsTargetPct,
       wantsTargetPct: wantsTargetPct ?? this.wantsTargetPct,
       savingsTargetPct: savingsTargetPct ?? this.savingsTargetPct,
+      themeMode: themeMode ?? this.themeMode,
+      accentColor: accentColor ?? this.accentColor,
     );
   }
 
@@ -2028,6 +2122,12 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     if (savingsTargetPct.present) {
       map['savings_target_pct'] = Variable<int>(savingsTargetPct.value);
     }
+    if (themeMode.present) {
+      map['theme_mode'] = Variable<int>(themeMode.value);
+    }
+    if (accentColor.present) {
+      map['accent_color'] = Variable<int>(accentColor.value);
+    }
     return map;
   }
 
@@ -2038,7 +2138,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
           ..write('selectedPeriod: $selectedPeriod, ')
           ..write('needsTargetPct: $needsTargetPct, ')
           ..write('wantsTargetPct: $wantsTargetPct, ')
-          ..write('savingsTargetPct: $savingsTargetPct')
+          ..write('savingsTargetPct: $savingsTargetPct, ')
+          ..write('themeMode: $themeMode, ')
+          ..write('accentColor: $accentColor')
           ..write(')'))
         .toString();
   }
@@ -3334,6 +3436,8 @@ typedef $$AppSettingsTableTableCreateCompanionBuilder =
       Value<int> needsTargetPct,
       Value<int> wantsTargetPct,
       Value<int> savingsTargetPct,
+      Value<int> themeMode,
+      Value<int> accentColor,
     });
 typedef $$AppSettingsTableTableUpdateCompanionBuilder =
     AppSettingsTableCompanion Function({
@@ -3342,6 +3446,8 @@ typedef $$AppSettingsTableTableUpdateCompanionBuilder =
       Value<int> needsTargetPct,
       Value<int> wantsTargetPct,
       Value<int> savingsTargetPct,
+      Value<int> themeMode,
+      Value<int> accentColor,
     });
 
 class $$AppSettingsTableTableFilterComposer
@@ -3375,6 +3481,16 @@ class $$AppSettingsTableTableFilterComposer
 
   ColumnFilters<int> get savingsTargetPct => $composableBuilder(
     column: $table.savingsTargetPct,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accentColor => $composableBuilder(
+    column: $table.accentColor,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3412,6 +3528,16 @@ class $$AppSettingsTableTableOrderingComposer
     column: $table.savingsTargetPct,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accentColor => $composableBuilder(
+    column: $table.accentColor,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableTableAnnotationComposer
@@ -3443,6 +3569,14 @@ class $$AppSettingsTableTableAnnotationComposer
 
   GeneratedColumn<int> get savingsTargetPct => $composableBuilder(
     column: $table.savingsTargetPct,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get themeMode =>
+      $composableBuilder(column: $table.themeMode, builder: (column) => column);
+
+  GeneratedColumn<int> get accentColor => $composableBuilder(
+    column: $table.accentColor,
     builder: (column) => column,
   );
 }
@@ -3489,12 +3623,16 @@ class $$AppSettingsTableTableTableManager
                 Value<int> needsTargetPct = const Value.absent(),
                 Value<int> wantsTargetPct = const Value.absent(),
                 Value<int> savingsTargetPct = const Value.absent(),
+                Value<int> themeMode = const Value.absent(),
+                Value<int> accentColor = const Value.absent(),
               }) => AppSettingsTableCompanion(
                 id: id,
                 selectedPeriod: selectedPeriod,
                 needsTargetPct: needsTargetPct,
                 wantsTargetPct: wantsTargetPct,
                 savingsTargetPct: savingsTargetPct,
+                themeMode: themeMode,
+                accentColor: accentColor,
               ),
           createCompanionCallback:
               ({
@@ -3503,12 +3641,16 @@ class $$AppSettingsTableTableTableManager
                 Value<int> needsTargetPct = const Value.absent(),
                 Value<int> wantsTargetPct = const Value.absent(),
                 Value<int> savingsTargetPct = const Value.absent(),
+                Value<int> themeMode = const Value.absent(),
+                Value<int> accentColor = const Value.absent(),
               }) => AppSettingsTableCompanion.insert(
                 id: id,
                 selectedPeriod: selectedPeriod,
                 needsTargetPct: needsTargetPct,
                 wantsTargetPct: wantsTargetPct,
                 savingsTargetPct: savingsTargetPct,
+                themeMode: themeMode,
+                accentColor: accentColor,
               ),
           withReferenceMapper: (p0) => p0
               .map(

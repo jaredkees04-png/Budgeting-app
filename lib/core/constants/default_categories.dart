@@ -66,7 +66,7 @@ const List<DefaultCategorySeed> kDefaultCategories = [
 /// One-tap suggestions offered when adding a new category, covering
 /// common bills that not everyone has (so they're opt-in rather than
 /// pre-seeded for every user). Picking one pre-fills the new-category
-/// form; the user can still rename or reclassify before saving.
+/// form; the user can still rename, recolor, or reclassify before saving.
 const List<DefaultCategorySeed> kSuggestedBillCategories = [
   DefaultCategorySeed(
     name: 'Phone/Internet',
@@ -115,6 +115,89 @@ const List<DefaultCategorySeed> kSuggestedBillCategories = [
     icon: 'repeat',
     color: '#8E24AA',
     budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+];
+
+/// One-tap suggestions for everyday spending beyond bills — so people
+/// aren't stuck either using the 5 starter categories or typing every
+/// category from scratch.
+const List<DefaultCategorySeed> kSuggestedEverydayCategories = [
+  DefaultCategorySeed(
+    name: 'Dining Out',
+    icon: 'restaurant',
+    color: '#EF6C00',
+    budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Entertainment',
+    icon: 'movie',
+    color: '#8E24AA',
+    budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Shopping',
+    icon: 'shopping_bag',
+    color: '#C2185B',
+    budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Clothing',
+    icon: 'checkroom',
+    color: '#3949AB',
+    budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Travel',
+    icon: 'flight',
+    color: '#1565C0',
+    budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Fitness/Gym',
+    icon: 'fitness_center',
+    color: '#00838F',
+    budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Gifts/Donations',
+    icon: 'card_giftcard',
+    color: '#C62828',
+    budgetGroup: BudgetGroup.wants,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Pets',
+    icon: 'pets',
+    color: '#6D4C41',
+    budgetGroup: BudgetGroup.needs,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Education',
+    icon: 'school',
+    color: '#37474F',
+    budgetGroup: BudgetGroup.needs,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Home Maintenance',
+    icon: 'build',
+    color: '#455A64',
+    budgetGroup: BudgetGroup.needs,
+    sortOrder: 0,
+  ),
+  DefaultCategorySeed(
+    name: 'Savings/Investments',
+    icon: 'savings',
+    color: '#2E7D32',
+    budgetGroup: BudgetGroup.savings,
     sortOrder: 0,
   ),
 ];

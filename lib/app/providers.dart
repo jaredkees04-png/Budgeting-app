@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/constants/theme_colors.dart';
 import '../core/utils/date_period.dart';
 import '../data/database/app_database.dart';
 import '../data/database/daos/transaction_dao.dart';
@@ -57,6 +59,21 @@ final activeCategoriesProvider = StreamProvider<List<Category>>((ref) {
 
 final appSettingsProvider = StreamProvider((ref) {
   return ref.watch(settingsRepositoryProvider).watchSettings();
+});
+
+/// Falls back to system/default while settings are still loading, so the
+/// app never flashes an unstyled frame waiting on the database.
+final themeModeProvider = Provider<ThemeMode>((ref) {
+  final index = ref.watch(appSettingsProvider).value?.themeMode;
+  if (index == null || index < 0 || index >= ThemeMode.values.length) {
+    return ThemeMode.system;
+  }
+  return ThemeMode.values[index];
+});
+
+final accentColorProvider = Provider<Color>((ref) {
+  final value = ref.watch(appSettingsProvider).value?.accentColor;
+  return value == null ? kThemeColorOptions.first.color : Color(value);
 });
 
 final transactionsInPeriodProvider =

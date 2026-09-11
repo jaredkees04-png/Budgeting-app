@@ -10,6 +10,14 @@ class AppSettingsTable extends Table {
   IntColumn get savingsTargetPct =>
       integer().withDefault(const Constant(20))();
 
+  /// Flutter's ThemeMode.index: 0 = system, 1 = light, 2 = dark.
+  IntColumn get themeMode => integer().withDefault(const Constant(0))();
+
+  /// ARGB color value used as the Material 3 seed color for the whole
+  /// app's theme. Defaults to the app's original green.
+  IntColumn get accentColor =>
+      integer().withDefault(const Constant(0xFF2E7D32))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

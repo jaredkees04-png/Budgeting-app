@@ -67,8 +67,8 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
     super.dispose();
   }
 
-  List<DefaultCategorySeed> get _availableSuggestions {
-    return kSuggestedBillCategories
+  List<DefaultCategorySeed> _available(List<DefaultCategorySeed> seeds) {
+    return seeds
         .where((s) => !widget.existingNames.contains(s.name.toLowerCase()))
         .toList();
   }
@@ -82,32 +82,45 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
     });
   }
 
+  Widget _suggestionWrap(List<DefaultCategorySeed> seeds) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: seeds.map((s) {
+        return ActionChip(
+          avatar: Icon(iconForKey(s.icon), size: 16),
+          label: Text(s.name),
+          onPressed: () => _applySuggestion(s),
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<DefaultCategorySeed> suggestions =
-        widget.existing == null ? _availableSuggestions : const [];
+    final isNew = widget.existing == null;
+    final List<DefaultCategorySeed> billSuggestions =
+        isNew ? _available(kSuggestedBillCategories) : const [];
+    final List<DefaultCategorySeed> everydaySuggestions =
+        isNew ? _available(kSuggestedEverydayCategories) : const [];
 
     return AlertDialog(
-      title: Text(widget.existing == null ? 'New category' : 'Edit category'),
+      title: Text(isNew ? 'New category' : 'Edit category'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (suggestions.isNotEmpty) ...[
-              const Text('Common bills — tap to start from one'),
+            if (billSuggestions.isNotEmpty) ...[
+              const Text('Bills — tap to start from one'),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: suggestions.map((s) {
-                  return ActionChip(
-                    avatar: Icon(iconForKey(s.icon), size: 16),
-                    label: Text(s.name),
-                    onPressed: () => _applySuggestion(s),
-                  );
-                }).toList(),
-              ),
+              _suggestionWrap(billSuggestions),
+              const SizedBox(height: 16),
+            ],
+            if (everydaySuggestions.isNotEmpty) ...[
+              const Text('Everyday spending — tap to start from one'),
+              const SizedBox(height: 8),
+              _suggestionWrap(everydaySuggestions),
               const SizedBox(height: 16),
             ],
             TextField(
