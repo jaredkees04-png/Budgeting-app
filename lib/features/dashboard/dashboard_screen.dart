@@ -7,6 +7,7 @@ import '../../core/utils/date_period.dart';
 import '../../core/utils/money.dart';
 import '../../widgets/empty_state.dart';
 import '../recommendations/recommendation_card.dart';
+import '../transaction_entry/transaction_entry_screen.dart';
 import 'widgets/breakdown_chart.dart';
 import 'widgets/category_breakdown_row.dart';
 
@@ -54,6 +55,15 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'dashboardAddTransactionFab',
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const TransactionEntryScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
       body: RefreshIndicator(
         onRefresh: () async {},

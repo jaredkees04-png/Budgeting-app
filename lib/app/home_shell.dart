@@ -3,12 +3,26 @@ import 'package:flutter/material.dart';
 import '../features/categories/category_list_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/history/history_screen.dart';
-import '../features/transaction_entry/transaction_entry_screen.dart';
 
 /// Bottom-nav shell: Dashboard is the default landing screen since it's
 /// what makes the app worth opening daily; History and Categories are
-/// one tab away. Adding a transaction is always one tap away via the
-/// FAB, from any tab.
+/// one tab away.
+///
+/// Each tab is its own Scaffold with its own floating action button
+/// (Dashboard/History: add a transaction; Categories: add a category)
+/// rather than one FAB living here. IndexedStack only paints/hit-tests
+/// the active child, so this is what keeps the tabs' FABs from stacking
+/// on top of each other in the same corner — a single FAB declared on
+/// this outer Scaffold would sit above every tab's own FAB regardless
+/// of which one is showing, making anything underneath unreachable.
+///
+/// IndexedStack keeps every tab mounted (not just the active one) so
+/// their state survives switching tabs, but that means all their FABs
+/// exist in the tree at once even though only the active tab's paints.
+/// Hero's tag-matching walks the whole tree regardless of paint
+/// visibility, so each tab's FAB needs its own unique heroTag — reusing
+/// one across tabs throws "multiple heroes share the same tag" the
+/// moment a route-push tries to animate it.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -25,21 +39,10 @@ class _HomeShellState extends State<HomeShell> {
     CategoryListScreen(),
   ];
 
-  void _openTransactionEntry() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TransactionEntryScreen()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'addTransactionFab',
-        onPressed: _openTransactionEntry,
-        child: const Icon(Icons.add),
-      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

@@ -22,6 +22,15 @@ class HistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('History')),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'historyAddTransactionFab',
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const TransactionEntryScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
       body: transactionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
@@ -114,12 +123,23 @@ class _HistoryTile extends StatelessWidget {
       ),
       title: Text(category.name),
       subtitle: transaction.note != null ? Text(transaction.note!) : null,
-      trailing: Text(
-        '${isIncome ? '+' : '-'}${Money.format(transaction.amountCents)}',
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: isIncome ? Colors.green.shade700 : null,
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${isIncome ? '+' : '-'}${Money.format(transaction.amountCents)}',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: isIncome ? Colors.green.shade700 : null,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.chevron_right,
+            size: 18,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ],
       ),
       onTap: () {
         Navigator.of(context).push(
