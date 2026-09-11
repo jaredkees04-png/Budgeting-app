@@ -7,5 +7,5 @@
 /// renames them too).
 const Map<String, double> kCommonCategoryGuidelinesPct = {
   'groceries': 15.0,
-  'bills': 30.0,
+  'rent/mortgage': 28.0,
 };

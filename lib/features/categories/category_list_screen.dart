@@ -18,7 +18,13 @@ class CategoryListScreen extends ConsumerWidget {
   };
 
   Future<void> _addCategory(BuildContext context, WidgetRef ref) async {
-    final result = await showCategoryEditDialog(context);
+    final existingNames = (ref.read(activeCategoriesProvider).value ?? [])
+        .map((c) => c.name.toLowerCase())
+        .toSet();
+    final result = await showCategoryEditDialog(
+      context,
+      existingNames: existingNames,
+    );
     if (result == null) return;
     await ref.read(categoryRepositoryProvider).createCategory(
           name: result.name,

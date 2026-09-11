@@ -39,7 +39,7 @@ void main() {
   final service = SavingsRecommendationService();
   final income = _category('income', 'Income', BudgetGroup.income);
   final groceries = _category('groceries', 'Groceries', BudgetGroup.needs);
-  final bills = _category('bills', 'Bills', BudgetGroup.needs);
+  final rent = _category('rent', 'Rent/Mortgage', BudgetGroup.needs);
   final fun = _category('fun', 'Personal/Fun', BudgetGroup.wants);
 
   test('reports no income data when there is no income', () {
@@ -119,7 +119,7 @@ void main() {
     final result = service.buildRecommendation(
       transactions: [
         _tx(income, 100000),
-        _tx(bills, 30000),
+        _tx(rent, 27000),
         _tx(groceries, 20000),
         _tx(fun, 30000),
       ],
@@ -129,5 +129,25 @@ void main() {
     );
 
     expect(result.suggestions, ['You\'re tracking close to the 50/30/20 guideline this period. Nice work.']);
+  });
+
+  test('surfaces a per-category suggestion for rent/mortgage over its guideline', () {
+    final result = service.buildRecommendation(
+      transactions: [
+        _tx(income, 100000),
+        _tx(rent, 40000), // 40% of income on rent vs ~28% guideline
+      ],
+      needsTargetPct: 50,
+      wantsTargetPct: 30,
+      savingsTargetPct: 20,
+    );
+
+    expect(
+      result.suggestions.any(
+        (s) => s.contains('40%') && s.contains('Rent/Mortgage') && s.contains('28%'),
+      ),
+      isTrue,
+      reason: 'suggestions were: ${result.suggestions}',
+    );
   });
 }

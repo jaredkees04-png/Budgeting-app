@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/default_categories.dart';
 import '../../core/utils/category_visuals.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/tables/categories_table.dart' show BudgetGroup;
@@ -23,17 +24,22 @@ class CategoryEditResult {
 Future<CategoryEditResult?> showCategoryEditDialog(
   BuildContext context, {
   Category? existing,
+  Set<String> existingNames = const {},
 }) {
   return showDialog<CategoryEditResult>(
     context: context,
-    builder: (context) => _CategoryEditDialog(existing: existing),
+    builder: (context) => _CategoryEditDialog(
+      existing: existing,
+      existingNames: existingNames,
+    ),
   );
 }
 
 class _CategoryEditDialog extends StatefulWidget {
   final Category? existing;
+  final Set<String> existingNames;
 
-  const _CategoryEditDialog({this.existing});
+  const _CategoryEditDialog({this.existing, this.existingNames = const {}});
 
   @override
   State<_CategoryEditDialog> createState() => _CategoryEditDialogState();
@@ -61,8 +67,26 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
     super.dispose();
   }
 
+  List<DefaultCategorySeed> get _availableSuggestions {
+    return kSuggestedBillCategories
+        .where((s) => !widget.existingNames.contains(s.name.toLowerCase()))
+        .toList();
+  }
+
+  void _applySuggestion(DefaultCategorySeed suggestion) {
+    setState(() {
+      _nameController.text = suggestion.name;
+      _icon = suggestion.icon;
+      _color = suggestion.color;
+      _budgetGroup = suggestion.budgetGroup;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final List<DefaultCategorySeed> suggestions =
+        widget.existing == null ? _availableSuggestions : const [];
+
     return AlertDialog(
       title: Text(widget.existing == null ? 'New category' : 'Edit category'),
       content: SingleChildScrollView(
@@ -70,6 +94,22 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (suggestions.isNotEmpty) ...[
+              const Text('Common bills — tap to start from one'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: suggestions.map((s) {
+                  return ActionChip(
+                    avatar: Icon(iconForKey(s.icon), size: 16),
+                    label: Text(s.name),
+                    onPressed: () => _applySuggestion(s),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
             TextField(
               controller: _nameController,
               autofocus: true,
