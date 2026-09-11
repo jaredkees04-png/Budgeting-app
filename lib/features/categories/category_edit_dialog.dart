@@ -1,26 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/constants/default_categories.dart';
 import '../../core/utils/category_visuals.dart';
+import '../../core/utils/money.dart';
 import '../../data/database/app_database.dart';
-import '../../data/database/tables/categories_table.dart' show BudgetGroup;
+import '../../data/database/tables/categories_table.dart'
+    show BudgetGroup, BillFrequency;
 
 class CategoryEditResult {
   final String name;
   final String icon;
   final String color;
   final BudgetGroup budgetGroup;
+  final bool isRecurring;
+  final BillFrequency? billFrequency;
+  final int? billAmountCents;
+  final DateTime? nextDueDate;
 
   const CategoryEditResult({
     required this.name,
     required this.icon,
     required this.color,
     required this.budgetGroup,
+    required this.isRecurring,
+    this.billFrequency,
+    this.billAmountCents,
+    this.nextDueDate,
   });
 }
 
 /// Add/edit form for a category, shown as a dialog. Used both for
-/// creating custom categories and reclassifying/renaming existing ones.
+/// creating custom categories and editing existing ones — including
+/// turning any category, built-in or custom, into a recurring bill.
 Future<CategoryEditResult?> showCategoryEditDialog(
   BuildContext context, {
   Category? existing,
@@ -47,23 +59,37 @@ class _CategoryEditDialog extends StatefulWidget {
 
 class _CategoryEditDialogState extends State<_CategoryEditDialog> {
   late final TextEditingController _nameController;
+  late final TextEditingController _amountController;
   late String _icon;
   late String _color;
   late BudgetGroup _budgetGroup;
+  late bool _isRecurring;
+  late BillFrequency _frequency;
+  late DateTime _nextDueDate;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
     final existing = widget.existing;
     _nameController = TextEditingController(text: existing?.name ?? '');
+    _amountController = TextEditingController(
+      text: existing?.billAmountCents != null
+          ? Money.formatPlain(existing!.billAmountCents!)
+          : '',
+    );
     _icon = existing?.icon ?? kCategoryIconOptions.keys.first;
     _color = existing?.color ?? kCategoryColorOptions.first;
     _budgetGroup = existing?.budgetGroup ?? BudgetGroup.needs;
+    _isRecurring = existing?.isRecurring ?? false;
+    _frequency = existing?.billFrequency ?? BillFrequency.monthly;
+    _nextDueDate = existing?.nextDueDate ?? DateTime.now();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _amountController.dispose();
     super.dispose();
   }
 
@@ -93,6 +119,43 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
           onPressed: () => _applySuggestion(s),
         );
       }).toList(),
+    );
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _nextDueDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
+    );
+    if (picked != null) setState(() => _nextDueDate = picked);
+  }
+
+  void _save() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+
+    int? amountCents;
+    if (_isRecurring) {
+      amountCents = Money.parseToCents(_amountController.text);
+      if (amountCents == null || amountCents <= 0) {
+        setState(() => _error = 'Enter a bill amount greater than \$0');
+        return;
+      }
+    }
+
+    Navigator.of(context).pop(
+      CategoryEditResult(
+        name: name,
+        icon: _icon,
+        color: _color,
+        budgetGroup: _budgetGroup,
+        isRecurring: _isRecurring,
+        billFrequency: _isRecurring ? _frequency : null,
+        billAmountCents: amountCents,
+        nextDueDate: _isRecurring ? _nextDueDate : null,
+      ),
     );
   }
 
@@ -190,6 +253,61 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
                 if (value != null) setState(() => _budgetGroup = value);
               },
             ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Recurring bill'),
+              subtitle: const Text('Track a due date and get reminded to log it'),
+              value: _isRecurring,
+              onChanged: (value) => setState(() => _isRecurring = value),
+            ),
+            if (_isRecurring) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _amountController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Bill amount',
+                  prefixText: '\$ ',
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Repeats'),
+              const SizedBox(height: 8),
+              SegmentedButton<BillFrequency>(
+                segments: const [
+                  ButtonSegment(
+                    value: BillFrequency.weekly,
+                    label: Text('Weekly'),
+                  ),
+                  ButtonSegment(
+                    value: BillFrequency.monthly,
+                    label: Text('Monthly'),
+                  ),
+                ],
+                selected: {_frequency},
+                onSelectionChanged: (selection) =>
+                    setState(() => _frequency = selection.first),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.event_outlined),
+                title: const Text('Next due'),
+                subtitle: Text(DateFormat.yMMMd().format(_nextDueDate)),
+                trailing: TextButton(
+                  onPressed: _pickDate,
+                  child: const Text('Change'),
+                ),
+              ),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
           ],
         ),
       ),
@@ -198,21 +316,7 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: () {
-            final name = _nameController.text.trim();
-            if (name.isEmpty) return;
-            Navigator.of(context).pop(
-              CategoryEditResult(
-                name: name,
-                icon: _icon,
-                color: _color,
-                budgetGroup: _budgetGroup,
-              ),
-            );
-          },
-          child: const Text('Save'),
-        ),
+        FilledButton(onPressed: _save, child: const Text('Save')),
       ],
     );
   }

@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 
-import '../features/bills/bills_list_screen.dart';
 import '../features/categories/category_list_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/history/history_screen.dart';
 
 /// Bottom-nav shell: Dashboard is the default landing screen since it's
-/// what makes the app worth opening daily; History, Bills, and
-/// Categories are one tab away.
+/// what makes the app worth opening daily; History and Bills are one
+/// tab away.
+///
+/// "Bills" is [CategoryListScreen] — categories and recurring bills were
+/// split into separate tabs/tables at first, then merged: a bill is just
+/// a category (built-in or custom) with its recurring fields switched
+/// on, since a bill and its category are always 1:1 anyway. One screen
+/// manages both instead of two.
 ///
 /// Each tab is its own Scaffold with its own floating action button
-/// (Dashboard/History: add a transaction; Categories: add a category)
-/// rather than one FAB living here. IndexedStack only paints/hit-tests
-/// the active child, so this is what keeps the tabs' FABs from stacking
-/// on top of each other in the same corner — a single FAB declared on
-/// this outer Scaffold would sit above every tab's own FAB regardless
-/// of which one is showing, making anything underneath unreachable.
+/// (Dashboard/History: add a transaction; Bills: add a category) rather
+/// than one FAB living here. IndexedStack only paints/hit-tests the
+/// active child, so this is what keeps the tabs' FABs from stacking on
+/// top of each other in the same corner — a single FAB declared on this
+/// outer Scaffold would sit above every tab's own FAB regardless of
+/// which one is showing, making anything underneath unreachable.
 ///
 /// IndexedStack keeps every tab mounted (not just the active one) so
 /// their state survives switching tabs, but that means all their FABs
@@ -37,7 +42,6 @@ class _HomeShellState extends State<HomeShell> {
   static const _screens = [
     DashboardScreen(),
     HistoryScreen(),
-    BillsListScreen(),
     CategoryListScreen(),
   ];
 
@@ -63,11 +67,6 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.event_repeat_outlined),
             selectedIcon: Icon(Icons.event_repeat),
             label: 'Bills',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            selectedIcon: Icon(Icons.category),
-            label: 'Categories',
           ),
         ],
       ),

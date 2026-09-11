@@ -17,6 +17,7 @@ Category _category(String id, String name, BudgetGroup group) {
     isArchived: false,
     sortOrder: 0,
     createdAt: DateTime(2026, 1, 1),
+    isRecurring: false,
   );
 }
 

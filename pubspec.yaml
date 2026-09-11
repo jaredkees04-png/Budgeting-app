@@ -35,5 +35,9 @@ dev_dependencies:
   build_runner: ^2.4.13
   drift_dev: ^2.23.1
 
+  # Used directly in the migration test to set up a raw pre-migration
+  # database file; otherwise only a transitive dependency of drift.
+  sqlite3: ^3.5.2
+
 flutter:
   uses-material-design: true

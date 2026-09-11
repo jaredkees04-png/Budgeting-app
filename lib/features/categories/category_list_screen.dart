@@ -3,10 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../core/utils/category_visuals.dart';
+import '../../core/utils/money.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/tables/categories_table.dart' show BudgetGroup;
 import 'category_edit_dialog.dart';
 
+/// Manages categories, and doubles as "Bills": any category — built-in
+/// or custom — can be switched into a recurring bill (an amount, a
+/// frequency, a due date) since a bill and its category are always 1:1
+/// anyway. Recurring ones show their due date and a "Mark as paid"
+/// action right in this same list instead of living on a second tab.
 class CategoryListScreen extends ConsumerWidget {
   const CategoryListScreen({super.key});
 
@@ -31,6 +37,10 @@ class CategoryListScreen extends ConsumerWidget {
           icon: result.icon,
           color: result.color,
           budgetGroup: result.budgetGroup,
+          isRecurring: result.isRecurring,
+          billFrequency: result.billFrequency,
+          billAmountCents: result.billAmountCents,
+          nextDueDate: result.nextDueDate,
         );
   }
 
@@ -41,13 +51,17 @@ class CategoryListScreen extends ConsumerWidget {
   ) async {
     final result = await showCategoryEditDialog(context, existing: category);
     if (result == null) return;
-    final repo = ref.read(categoryRepositoryProvider);
-    if (result.name != category.name) {
-      await repo.renameCategory(category, result.name);
-    }
-    if (result.budgetGroup != category.budgetGroup) {
-      await repo.reclassifyCategory(category, result.budgetGroup);
-    }
+    await ref.read(categoryRepositoryProvider).updateCategory(
+          category,
+          name: result.name,
+          icon: result.icon,
+          color: result.color,
+          budgetGroup: result.budgetGroup,
+          isRecurring: result.isRecurring,
+          billFrequency: result.billFrequency,
+          billAmountCents: result.billAmountCents,
+          nextDueDate: result.nextDueDate,
+        );
   }
 
   Future<void> _archiveCategory(
@@ -80,12 +94,25 @@ class CategoryListScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _markPaid(
+    BuildContext context,
+    WidgetRef ref,
+    Category category,
+  ) async {
+    await ref.read(categoryRepositoryProvider).markBillPaid(category);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Marked "${category.name}" as paid')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(activeCategoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories')),
+      appBar: AppBar(title: const Text('Bills')),
       floatingActionButton: FloatingActionButton(
         heroTag: 'addCategoryFab',
         onPressed: () => _addCategory(context, ref),
@@ -99,34 +126,88 @@ class CategoryListScreen extends ConsumerWidget {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: colorFromHex(category.color),
-                  child: Icon(iconForKey(category.icon), color: Colors.white),
-                ),
-                title: Text(category.name),
-                subtitle: Text(_groupLabels[category.budgetGroup]!),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _editCategory(context, ref, category);
-                    } else if (value == 'remove') {
-                      _archiveCategory(context, ref, category);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    if (!category.isDefault)
-                      const PopupMenuItem(
-                        value: 'remove',
-                        child: Text('Remove'),
-                      ),
-                  ],
-                ),
+              return _CategoryTile(
+                category: category,
+                onTap: () => _editCategory(context, ref, category),
+                onMarkPaid: () => _markPaid(context, ref, category),
+                onArchive: () => _archiveCategory(context, ref, category),
               );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _CategoryTile extends StatelessWidget {
+  final Category category;
+  final VoidCallback onTap;
+  final VoidCallback onMarkPaid;
+  final VoidCallback onArchive;
+
+  const _CategoryTile({
+    required this.category,
+    required this.onTap,
+    required this.onMarkPaid,
+    required this.onArchive,
+  });
+
+  ({String label, Color? color}) _dueStatus(BuildContext context) {
+    final theme = Theme.of(context);
+    final due = category.nextDueDate!;
+    final today = DateTime.now();
+    final today0 = DateTime(today.year, today.month, today.day);
+    final due0 = DateTime(due.year, due.month, due.day);
+    final diff = due0.difference(today0).inDays;
+
+    if (diff < 0) {
+      return (label: 'Overdue by ${-diff}d', color: theme.colorScheme.error);
+    }
+    if (diff == 0) {
+      return (label: 'Due today', color: theme.colorScheme.primary);
+    }
+    return (label: 'Due in ${diff}d', color: null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isRecurring = category.isRecurring;
+    final subtitle = isRecurring
+        ? _dueStatus(context)
+        : (label: CategoryListScreen._groupLabels[category.budgetGroup]!, color: null);
+
+    return ListTile(
+      onTap: onTap,
+      leading: CircleAvatar(
+        backgroundColor: colorFromHex(category.color),
+        child: Icon(iconForKey(category.icon), color: Colors.white),
+      ),
+      title: Text(category.name),
+      subtitle: Text(subtitle.label, style: TextStyle(color: subtitle.color)),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isRecurring)
+            Text(
+              Money.format(category.billAmountCents!),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'edit') onTap();
+              if (value == 'paid') onMarkPaid();
+              if (value == 'remove') onArchive();
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+              if (isRecurring)
+                const PopupMenuItem(value: 'paid', child: Text('Mark as paid')),
+              if (!category.isDefault)
+                const PopupMenuItem(value: 'remove', child: Text('Remove')),
+            ],
+          ),
+        ],
       ),
     );
   }

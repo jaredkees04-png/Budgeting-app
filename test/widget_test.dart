@@ -200,9 +200,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // On the Categories tab, the + button must open "New category" —
-      // not "Add transaction" from some other tab's leftover FAB.
-      await tester.tap(find.text('Categories'));
+      // On the Bills tab (categories, some of which can be recurring
+      // bills), the + button must open "New category" — not "Add
+      // transaction" from some other tab's leftover FAB.
+      await tester.tap(find.text('Bills'));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.add), findsOneWidget);
       await tester.tap(find.byIcon(Icons.add));
