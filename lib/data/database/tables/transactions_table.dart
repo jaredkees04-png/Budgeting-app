@@ -3,8 +3,10 @@ import 'categories_table.dart';
 
 /// How a transaction was entered. Manual entry is fully supported and
 /// equally first-class; `scanned` is only ever set by the Phase 2
-/// receipt-capture flow.
-enum TransactionSource { manual, scanned }
+/// receipt-capture flow; `recurring` is set when a recurring bill is
+/// marked paid. New values append at the end since the int index is what
+/// persists to disk.
+enum TransactionSource { manual, scanned, recurring }
 
 class Transactions extends Table {
   TextColumn get id => text()();

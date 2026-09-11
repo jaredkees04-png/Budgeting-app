@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/theme_colors.dart';
 import '../core/utils/date_period.dart';
 import '../data/database/app_database.dart';
+import '../data/database/daos/recurring_bill_dao.dart';
 import '../data/database/daos/transaction_dao.dart';
 import '../data/repositories/category_repository.dart';
+import '../data/repositories/recurring_bill_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/transaction_repository.dart';
 import '../domain/models/spending_summary.dart';
@@ -28,6 +30,13 @@ final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
+});
+
+final recurringBillRepositoryProvider = Provider<RecurringBillRepository>((ref) {
+  return RecurringBillRepository(
+    ref.watch(appDatabaseProvider),
+    ref.watch(transactionRepositoryProvider),
+  );
 });
 
 final spendingBreakdownServiceProvider =
@@ -55,6 +64,10 @@ final selectedDateRangeProvider = Provider<DateRange>((ref) {
 
 final activeCategoriesProvider = StreamProvider<List<Category>>((ref) {
   return ref.watch(categoryRepositoryProvider).watchActiveCategories();
+});
+
+final activeBillsProvider = StreamProvider<List<RecurringBillWithCategory>>((ref) {
+  return ref.watch(recurringBillRepositoryProvider).watchActiveBills();
 });
 
 final appSettingsProvider = StreamProvider((ref) {

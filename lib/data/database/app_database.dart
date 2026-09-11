@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'connection/connection.dart' as connection;
 import 'daos/category_dao.dart';
+import 'daos/recurring_bill_dao.dart';
 import 'daos/transaction_dao.dart';
 import 'tables/app_settings_table.dart';
 import 'tables/categories_table.dart';
@@ -14,7 +15,7 @@ part 'app_database.g.dart';
 
 @DriftDatabase(
   tables: [Categories, Transactions, RecurringBills, AppSettingsTable],
-  daos: [CategoryDao, TransactionDao],
+  daos: [CategoryDao, TransactionDao, RecurringBillDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])

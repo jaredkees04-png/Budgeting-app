@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../features/bills/bills_list_screen.dart';
 import '../features/categories/category_list_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/history/history_screen.dart';
 
 /// Bottom-nav shell: Dashboard is the default landing screen since it's
-/// what makes the app worth opening daily; History and Categories are
-/// one tab away.
+/// what makes the app worth opening daily; History, Bills, and
+/// Categories are one tab away.
 ///
 /// Each tab is its own Scaffold with its own floating action button
 /// (Dashboard/History: add a transaction; Categories: add a category)
@@ -36,6 +37,7 @@ class _HomeShellState extends State<HomeShell> {
   static const _screens = [
     DashboardScreen(),
     HistoryScreen(),
+    BillsListScreen(),
     CategoryListScreen(),
   ];
 
@@ -56,6 +58,11 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history),
             label: 'History',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.event_repeat_outlined),
+            selectedIcon: Icon(Icons.event_repeat),
+            label: 'Bills',
           ),
           NavigationDestination(
             icon: Icon(Icons.category_outlined),
