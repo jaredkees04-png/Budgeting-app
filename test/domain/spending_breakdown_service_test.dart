@@ -59,15 +59,31 @@ void main() {
     expect(summary.totalSpendingCents, 40000);
   });
 
-  test('computes correct percentage-of-spending per category', () {
+  test('computes correct percentage-of-income per category', () {
     final summary = service.summarize([
-      _tx(groceries, 7500),
-      _tx(fun, 2500),
+      _tx(income, 100000),
+      _tx(groceries, 30000),
+      _tx(fun, 20000),
     ]);
 
     final byName = {for (final b in summary.byCategory) b.category.name: b};
-    expect(byName['Groceries']!.percentOfSpending, closeTo(75, 0.01));
-    expect(byName['Personal/Fun']!.percentOfSpending, closeTo(25, 0.01));
+    expect(byName['Groceries']!.percentOfIncome, closeTo(30, 0.01));
+    expect(byName['Personal/Fun']!.percentOfIncome, closeTo(20, 0.01));
+  });
+
+  test('percentOfIncome is null when there is no income yet', () {
+    final summary = service.summarize([_tx(groceries, 7500)]);
+
+    expect(summary.byCategory.single.percentOfIncome, isNull);
+  });
+
+  test('percentOfIncome can exceed 100% when overspent relative to income', () {
+    final summary = service.summarize([
+      _tx(income, 100000),
+      _tx(groceries, 150000),
+    ]);
+
+    expect(summary.byCategory.single.percentOfIncome, closeTo(150, 0.01));
   });
 
   test('aggregates multiple transactions in the same category', () {

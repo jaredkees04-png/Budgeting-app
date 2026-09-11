@@ -5,14 +5,17 @@ class CategoryBreakdown {
   final Category category;
   final int totalCents;
 
-  /// 0.0-100.0, share of total spending (income excluded) this category
-  /// represents. Zero when there's no spending yet.
-  final double percentOfSpending;
+  /// Share of income this category's spending represents, 0.0-100.0 (can
+  /// exceed 100 if overspent relative to income — that's a real signal,
+  /// not a bug). Null when there's no income for the period yet, matching
+  /// [BudgetGroupBreakdown.actualPct]'s convention, since "percent of
+  /// income" is meaningless with no income to divide by.
+  final double? percentOfIncome;
 
   const CategoryBreakdown({
     required this.category,
     required this.totalCents,
-    required this.percentOfSpending,
+    required this.percentOfIncome,
   });
 }
 

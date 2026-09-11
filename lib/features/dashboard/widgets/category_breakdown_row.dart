@@ -12,6 +12,7 @@ class CategoryBreakdownRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final category = breakdown.category;
+    final pct = breakdown.percentOfIncome;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -27,7 +28,7 @@ class CategoryBreakdownRow extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: (breakdown.percentOfSpending / 100).clamp(0, 1),
+                    value: pct == null ? 0 : (pct / 100).clamp(0, 1),
                     minHeight: 4,
                     backgroundColor:
                         colorFromHex(category.color).withValues(alpha: 0.15),
@@ -43,7 +44,7 @@ class CategoryBreakdownRow extends StatelessWidget {
             children: [
               Text(Money.format(breakdown.totalCents),
                   style: const TextStyle(fontWeight: FontWeight.w600)),
-              Text('${breakdown.percentOfSpending.toStringAsFixed(0)}%',
+              Text(pct == null ? '–' : '${pct.toStringAsFixed(0)}% of income',
                   style: Theme.of(context).textTheme.bodySmall),
             ],
           ),

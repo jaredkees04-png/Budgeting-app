@@ -34,11 +34,11 @@ class SpendingBreakdownService {
 
     final byCategory = totalsByCategory.entries.map((entry) {
       final category = categoriesById[entry.key]!;
-      final pct = totalSpending == 0 ? 0.0 : (entry.value / totalSpending) * 100;
+      final pct = totalIncome == 0 ? null : (entry.value / totalIncome) * 100;
       return CategoryBreakdown(
         category: category,
         totalCents: entry.value,
-        percentOfSpending: pct,
+        percentOfIncome: pct,
       );
     }).toList()
       ..sort((a, b) => b.totalCents.compareTo(a.totalCents));

@@ -127,7 +127,7 @@ class DashboardScreen extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            BreakdownChart(breakdown: summary.byCategory),
+                            BreakdownChart(summary: summary),
                           ],
                         ),
                       ),
