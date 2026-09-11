@@ -8,9 +8,13 @@ class SettingsRepository {
 
   SettingsRepository(this._db);
 
-  Stream<AppSettingsTableData> watchSettings() {
+  /// Null until the single settings row exists. In practice that's only a
+  /// brief window right after first launch (before the schema-creation
+  /// seed insert lands) — callers should treat null as "still starting up"
+  /// rather than an error, instead of assuming the row is always present.
+  Stream<AppSettingsTableData?> watchSettings() {
     return (_db.select(_db.appSettingsTable)..where((s) => s.id.equals(0)))
-        .watchSingle();
+        .watchSingleOrNull();
   }
 
   Future<void> updatePeriod(PeriodType period) {
