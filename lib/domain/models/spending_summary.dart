@@ -30,6 +30,11 @@ class SpendingSummary {
     required this.byCategory,
   });
 
+  /// What's left of this period's income after all spending so far.
+  /// Negative when spending has exceeded income — a real signal that
+  /// the period is running in the red, not a bug.
+  int get remainingCents => totalIncomeCents - totalSpendingCents;
+
   static const empty = SpendingSummary(
     totalIncomeCents: 0,
     totalSpendingCents: 0,

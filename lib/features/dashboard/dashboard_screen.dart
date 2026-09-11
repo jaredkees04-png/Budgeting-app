@@ -134,6 +134,13 @@ class DashboardScreen extends ConsumerWidget {
                                   label: 'Spent',
                                   amountCents: summary.totalSpendingCents,
                                 ),
+                                _TotalStat(
+                                  label: 'Remaining',
+                                  amountCents: summary.remainingCents,
+                                  valueColor: summary.remainingCents < 0
+                                      ? Theme.of(context).colorScheme.error
+                                      : Colors.green.shade700,
+                                ),
                               ],
                             ),
                             const SizedBox(height: 16),
@@ -175,8 +182,13 @@ class DashboardScreen extends ConsumerWidget {
 class _TotalStat extends StatelessWidget {
   final String label;
   final int amountCents;
+  final Color? valueColor;
 
-  const _TotalStat({required this.label, required this.amountCents});
+  const _TotalStat({
+    required this.label,
+    required this.amountCents,
+    this.valueColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -186,10 +198,10 @@ class _TotalStat extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           Money.format(amountCents),
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: valueColor,
+              ),
         ),
       ],
     );

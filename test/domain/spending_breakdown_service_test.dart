@@ -58,6 +58,16 @@ void main() {
 
     expect(summary.totalIncomeCents, 500000);
     expect(summary.totalSpendingCents, 40000);
+    expect(summary.remainingCents, 460000);
+  });
+
+  test('remainingCents goes negative when spending exceeds income', () {
+    final summary = service.summarize([
+      _tx(income, 100000),
+      _tx(groceries, 150000),
+    ]);
+
+    expect(summary.remainingCents, -50000);
   });
 
   test('computes correct percentage-of-income per category', () {

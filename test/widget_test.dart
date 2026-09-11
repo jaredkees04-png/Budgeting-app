@@ -78,6 +78,67 @@ void main() {
   });
 
   testWidgets(
+    'the dashboard shows what remains of income after spending, and turns '
+    'red once spending exceeds it',
+    (tester) async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [appDatabaseProvider.overrideWithValue(db)],
+          child: const BudgetingApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '1000');
+      await tester.tap(find.text('Income'));
+      await tester.tap(find.text('Save transaction'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '600');
+      await tester.tap(find.text('Groceries'));
+      await tester.tap(find.text('Save transaction'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Remaining'), findsOneWidget);
+      expect(find.text('\$400.00'), findsOneWidget);
+      final remainingText = tester.widget<Text>(
+        find.text('\$400.00'),
+      );
+      expect(
+        remainingText.style?.color,
+        isNot(equals(Theme.of(tester.element(find.text('Remaining'))).colorScheme.error)),
+        reason: 'Still in the black, so it should not be styled as an error',
+      );
+
+      // Spend more than the remaining income: it goes negative and red.
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, '500');
+      await tester.tap(find.text('Groceries'));
+      await tester.tap(find.text('Save transaction'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('-\$100.00'), findsOneWidget);
+      final overspentText = tester.widget<Text>(find.text('-\$100.00'));
+      expect(
+        overspentText.style?.color,
+        Theme.of(tester.element(find.text('Remaining'))).colorScheme.error,
+        reason: 'Overspending should be styled as an error, not a normal amount',
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 1));
+    },
+  );
+
+  testWidgets(
     'the 50/30/20 guideline card renders real figures, not blank',
     (tester) async {
       // Regression test: the settings row's id ended up 1 (SQLite assigns
