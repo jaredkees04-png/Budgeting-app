@@ -78,7 +78,10 @@ class DashboardScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {},
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          // Extra bottom padding reserves space for the FAB, which floats
+          // at a fixed screen position above the scroll content — without
+          // it, content scrolled to the bottom can end up underneath it.
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

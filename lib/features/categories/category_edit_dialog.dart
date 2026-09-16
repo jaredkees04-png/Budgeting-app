@@ -33,16 +33,24 @@ class CategoryEditResult {
 /// Add/edit form for a category, shown as a dialog. Used both for
 /// creating custom categories and editing existing ones — including
 /// turning any category, built-in or custom, into a recurring bill.
+///
+/// [initialDueDate] prefills the due date and switches "Recurring bill"
+/// on by default for a brand new category — used when adding a bill by
+/// tapping a day on the calendar, where the whole point is to pin it to
+/// that date. Ignored when [existing] is set, since editing keeps its
+/// own due date unless changed.
 Future<CategoryEditResult?> showCategoryEditDialog(
   BuildContext context, {
   Category? existing,
   Set<String> existingNames = const {},
+  DateTime? initialDueDate,
 }) {
   return showDialog<CategoryEditResult>(
     context: context,
     builder: (context) => _CategoryEditDialog(
       existing: existing,
       existingNames: existingNames,
+      initialDueDate: initialDueDate,
     ),
   );
 }
@@ -50,8 +58,13 @@ Future<CategoryEditResult?> showCategoryEditDialog(
 class _CategoryEditDialog extends StatefulWidget {
   final Category? existing;
   final Set<String> existingNames;
+  final DateTime? initialDueDate;
 
-  const _CategoryEditDialog({this.existing, this.existingNames = const {}});
+  const _CategoryEditDialog({
+    this.existing,
+    this.existingNames = const {},
+    this.initialDueDate,
+  });
 
   @override
   State<_CategoryEditDialog> createState() => _CategoryEditDialogState();
@@ -81,9 +94,10 @@ class _CategoryEditDialogState extends State<_CategoryEditDialog> {
     _icon = existing?.icon ?? kCategoryIconOptions.keys.first;
     _color = existing?.color ?? kCategoryColorOptions.first;
     _budgetGroup = existing?.budgetGroup ?? BudgetGroup.needs;
-    _isRecurring = existing?.isRecurring ?? false;
+    _isRecurring = existing?.isRecurring ?? (widget.initialDueDate != null);
     _frequency = existing?.billFrequency ?? BillFrequency.monthly;
-    _nextDueDate = existing?.nextDueDate ?? DateTime.now();
+    _nextDueDate =
+        existing?.nextDueDate ?? widget.initialDueDate ?? DateTime.now();
   }
 
   @override

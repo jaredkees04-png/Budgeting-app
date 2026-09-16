@@ -123,6 +123,12 @@ class CategoryListScreen extends ConsumerWidget {
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (categories) {
           return ListView.builder(
+            // Extra bottom padding reserves space for the FAB, which
+            // floats at a fixed screen position above the scroll content
+            // — without it, a category scrolled to the bottom of a long
+            // list can end up underneath it, right where its own "mark as
+            // paid"/edit menu would be tapped.
+            padding: const EdgeInsets.only(bottom: 88),
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];

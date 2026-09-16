@@ -45,7 +45,11 @@ class HistoryScreen extends ConsumerWidget {
 
           final groups = _groupByDay(transactions);
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            // Extra bottom padding reserves space for the FAB, which
+            // floats at a fixed screen position above the scroll content
+            // — without it, a transaction scrolled to the bottom of a
+            // long history can end up underneath it.
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 88),
             itemCount: groups.length,
             itemBuilder: (context, index) {
               final group = groups[index];
