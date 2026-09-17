@@ -47,6 +47,23 @@ void main() {
           created_at INTEGER NOT NULL
         );
       ''');
+      // A real v2 install also has app_settings_table (created at v1,
+      // with the theme/accent columns already added by the v1-to-v2
+      // migration) — needed here too, since opening AppDatabase below
+      // triggers every migration step up to the current schema version,
+      // not just the recurring-bills one this test is about.
+      raw.execute('''
+        CREATE TABLE app_settings_table (
+          id INTEGER NOT NULL PRIMARY KEY,
+          selected_period INTEGER NOT NULL DEFAULT 1,
+          needs_target_pct INTEGER NOT NULL DEFAULT 50,
+          wants_target_pct INTEGER NOT NULL DEFAULT 30,
+          savings_target_pct INTEGER NOT NULL DEFAULT 20,
+          theme_mode INTEGER NOT NULL DEFAULT 0,
+          accent_color INTEGER NOT NULL DEFAULT 3022368
+        );
+      ''');
+      raw.execute("INSERT INTO app_settings_table (id) VALUES (0)");
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final due = DateTime(2026, 10, 1).millisecondsSinceEpoch ~/ 1000;
       raw.execute(

@@ -1460,6 +1460,43 @@ class $AppSettingsTableTable extends AppSettingsTable
     requiredDuringInsert: false,
     defaultValue: const Constant(0xFF2E7D32),
   );
+  static const VerificationMeta _isLockEnabledMeta = const VerificationMeta(
+    'isLockEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> isLockEnabled = GeneratedColumn<bool>(
+    'is_lock_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_lock_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _lockPinHashMeta = const VerificationMeta(
+    'lockPinHash',
+  );
+  @override
+  late final GeneratedColumn<String> lockPinHash = GeneratedColumn<String>(
+    'lock_pin_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lockPinSaltMeta = const VerificationMeta(
+    'lockPinSalt',
+  );
+  @override
+  late final GeneratedColumn<String> lockPinSalt = GeneratedColumn<String>(
+    'lock_pin_salt',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1469,6 +1506,9 @@ class $AppSettingsTableTable extends AppSettingsTable
     savingsTargetPct,
     themeMode,
     accentColor,
+    isLockEnabled,
+    lockPinHash,
+    lockPinSalt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1536,6 +1576,33 @@ class $AppSettingsTableTable extends AppSettingsTable
         ),
       );
     }
+    if (data.containsKey('is_lock_enabled')) {
+      context.handle(
+        _isLockEnabledMeta,
+        isLockEnabled.isAcceptableOrUnknown(
+          data['is_lock_enabled']!,
+          _isLockEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('lock_pin_hash')) {
+      context.handle(
+        _lockPinHashMeta,
+        lockPinHash.isAcceptableOrUnknown(
+          data['lock_pin_hash']!,
+          _lockPinHashMeta,
+        ),
+      );
+    }
+    if (data.containsKey('lock_pin_salt')) {
+      context.handle(
+        _lockPinSaltMeta,
+        lockPinSalt.isAcceptableOrUnknown(
+          data['lock_pin_salt']!,
+          _lockPinSaltMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1573,6 +1640,18 @@ class $AppSettingsTableTable extends AppSettingsTable
         DriftSqlType.int,
         data['${effectivePrefix}accent_color'],
       )!,
+      isLockEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_lock_enabled'],
+      )!,
+      lockPinHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lock_pin_hash'],
+      ),
+      lockPinSalt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lock_pin_salt'],
+      ),
     );
   }
 
@@ -1596,6 +1675,16 @@ class AppSettingsTableData extends DataClass
   /// ARGB color value used as the Material 3 seed color for the whole
   /// app's theme. Defaults to the app's original green.
   final int accentColor;
+
+  /// Whether a PIN is required to open the app. There's no server and no
+  /// user accounts — this is a local device lock, not authentication —
+  /// so [lockPinHash] is only ever compared against, never sent anywhere.
+  final bool isLockEnabled;
+
+  /// SHA-256 hex digest of the PIN, salted with [lockPinSalt]. Null when
+  /// [isLockEnabled] is false.
+  final String? lockPinHash;
+  final String? lockPinSalt;
   const AppSettingsTableData({
     required this.id,
     required this.selectedPeriod,
@@ -1604,6 +1693,9 @@ class AppSettingsTableData extends DataClass
     required this.savingsTargetPct,
     required this.themeMode,
     required this.accentColor,
+    required this.isLockEnabled,
+    this.lockPinHash,
+    this.lockPinSalt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1615,6 +1707,13 @@ class AppSettingsTableData extends DataClass
     map['savings_target_pct'] = Variable<int>(savingsTargetPct);
     map['theme_mode'] = Variable<int>(themeMode);
     map['accent_color'] = Variable<int>(accentColor);
+    map['is_lock_enabled'] = Variable<bool>(isLockEnabled);
+    if (!nullToAbsent || lockPinHash != null) {
+      map['lock_pin_hash'] = Variable<String>(lockPinHash);
+    }
+    if (!nullToAbsent || lockPinSalt != null) {
+      map['lock_pin_salt'] = Variable<String>(lockPinSalt);
+    }
     return map;
   }
 
@@ -1627,6 +1726,13 @@ class AppSettingsTableData extends DataClass
       savingsTargetPct: Value(savingsTargetPct),
       themeMode: Value(themeMode),
       accentColor: Value(accentColor),
+      isLockEnabled: Value(isLockEnabled),
+      lockPinHash: lockPinHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lockPinHash),
+      lockPinSalt: lockPinSalt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lockPinSalt),
     );
   }
 
@@ -1643,6 +1749,9 @@ class AppSettingsTableData extends DataClass
       savingsTargetPct: serializer.fromJson<int>(json['savingsTargetPct']),
       themeMode: serializer.fromJson<int>(json['themeMode']),
       accentColor: serializer.fromJson<int>(json['accentColor']),
+      isLockEnabled: serializer.fromJson<bool>(json['isLockEnabled']),
+      lockPinHash: serializer.fromJson<String?>(json['lockPinHash']),
+      lockPinSalt: serializer.fromJson<String?>(json['lockPinSalt']),
     );
   }
   @override
@@ -1656,6 +1765,9 @@ class AppSettingsTableData extends DataClass
       'savingsTargetPct': serializer.toJson<int>(savingsTargetPct),
       'themeMode': serializer.toJson<int>(themeMode),
       'accentColor': serializer.toJson<int>(accentColor),
+      'isLockEnabled': serializer.toJson<bool>(isLockEnabled),
+      'lockPinHash': serializer.toJson<String?>(lockPinHash),
+      'lockPinSalt': serializer.toJson<String?>(lockPinSalt),
     };
   }
 
@@ -1667,6 +1779,9 @@ class AppSettingsTableData extends DataClass
     int? savingsTargetPct,
     int? themeMode,
     int? accentColor,
+    bool? isLockEnabled,
+    Value<String?> lockPinHash = const Value.absent(),
+    Value<String?> lockPinSalt = const Value.absent(),
   }) => AppSettingsTableData(
     id: id ?? this.id,
     selectedPeriod: selectedPeriod ?? this.selectedPeriod,
@@ -1675,6 +1790,9 @@ class AppSettingsTableData extends DataClass
     savingsTargetPct: savingsTargetPct ?? this.savingsTargetPct,
     themeMode: themeMode ?? this.themeMode,
     accentColor: accentColor ?? this.accentColor,
+    isLockEnabled: isLockEnabled ?? this.isLockEnabled,
+    lockPinHash: lockPinHash.present ? lockPinHash.value : this.lockPinHash,
+    lockPinSalt: lockPinSalt.present ? lockPinSalt.value : this.lockPinSalt,
   );
   AppSettingsTableData copyWithCompanion(AppSettingsTableCompanion data) {
     return AppSettingsTableData(
@@ -1695,6 +1813,15 @@ class AppSettingsTableData extends DataClass
       accentColor: data.accentColor.present
           ? data.accentColor.value
           : this.accentColor,
+      isLockEnabled: data.isLockEnabled.present
+          ? data.isLockEnabled.value
+          : this.isLockEnabled,
+      lockPinHash: data.lockPinHash.present
+          ? data.lockPinHash.value
+          : this.lockPinHash,
+      lockPinSalt: data.lockPinSalt.present
+          ? data.lockPinSalt.value
+          : this.lockPinSalt,
     );
   }
 
@@ -1707,7 +1834,10 @@ class AppSettingsTableData extends DataClass
           ..write('wantsTargetPct: $wantsTargetPct, ')
           ..write('savingsTargetPct: $savingsTargetPct, ')
           ..write('themeMode: $themeMode, ')
-          ..write('accentColor: $accentColor')
+          ..write('accentColor: $accentColor, ')
+          ..write('isLockEnabled: $isLockEnabled, ')
+          ..write('lockPinHash: $lockPinHash, ')
+          ..write('lockPinSalt: $lockPinSalt')
           ..write(')'))
         .toString();
   }
@@ -1721,6 +1851,9 @@ class AppSettingsTableData extends DataClass
     savingsTargetPct,
     themeMode,
     accentColor,
+    isLockEnabled,
+    lockPinHash,
+    lockPinSalt,
   );
   @override
   bool operator ==(Object other) =>
@@ -1732,7 +1865,10 @@ class AppSettingsTableData extends DataClass
           other.wantsTargetPct == this.wantsTargetPct &&
           other.savingsTargetPct == this.savingsTargetPct &&
           other.themeMode == this.themeMode &&
-          other.accentColor == this.accentColor);
+          other.accentColor == this.accentColor &&
+          other.isLockEnabled == this.isLockEnabled &&
+          other.lockPinHash == this.lockPinHash &&
+          other.lockPinSalt == this.lockPinSalt);
 }
 
 class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
@@ -1743,6 +1879,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
   final Value<int> savingsTargetPct;
   final Value<int> themeMode;
   final Value<int> accentColor;
+  final Value<bool> isLockEnabled;
+  final Value<String?> lockPinHash;
+  final Value<String?> lockPinSalt;
   const AppSettingsTableCompanion({
     this.id = const Value.absent(),
     this.selectedPeriod = const Value.absent(),
@@ -1751,6 +1890,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     this.savingsTargetPct = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.accentColor = const Value.absent(),
+    this.isLockEnabled = const Value.absent(),
+    this.lockPinHash = const Value.absent(),
+    this.lockPinSalt = const Value.absent(),
   });
   AppSettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -1760,6 +1902,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     this.savingsTargetPct = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.accentColor = const Value.absent(),
+    this.isLockEnabled = const Value.absent(),
+    this.lockPinHash = const Value.absent(),
+    this.lockPinSalt = const Value.absent(),
   });
   static Insertable<AppSettingsTableData> custom({
     Expression<int>? id,
@@ -1769,6 +1914,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Expression<int>? savingsTargetPct,
     Expression<int>? themeMode,
     Expression<int>? accentColor,
+    Expression<bool>? isLockEnabled,
+    Expression<String>? lockPinHash,
+    Expression<String>? lockPinSalt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1778,6 +1926,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
       if (savingsTargetPct != null) 'savings_target_pct': savingsTargetPct,
       if (themeMode != null) 'theme_mode': themeMode,
       if (accentColor != null) 'accent_color': accentColor,
+      if (isLockEnabled != null) 'is_lock_enabled': isLockEnabled,
+      if (lockPinHash != null) 'lock_pin_hash': lockPinHash,
+      if (lockPinSalt != null) 'lock_pin_salt': lockPinSalt,
     });
   }
 
@@ -1789,6 +1940,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Value<int>? savingsTargetPct,
     Value<int>? themeMode,
     Value<int>? accentColor,
+    Value<bool>? isLockEnabled,
+    Value<String?>? lockPinHash,
+    Value<String?>? lockPinSalt,
   }) {
     return AppSettingsTableCompanion(
       id: id ?? this.id,
@@ -1798,6 +1952,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
       savingsTargetPct: savingsTargetPct ?? this.savingsTargetPct,
       themeMode: themeMode ?? this.themeMode,
       accentColor: accentColor ?? this.accentColor,
+      isLockEnabled: isLockEnabled ?? this.isLockEnabled,
+      lockPinHash: lockPinHash ?? this.lockPinHash,
+      lockPinSalt: lockPinSalt ?? this.lockPinSalt,
     );
   }
 
@@ -1825,6 +1982,15 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     if (accentColor.present) {
       map['accent_color'] = Variable<int>(accentColor.value);
     }
+    if (isLockEnabled.present) {
+      map['is_lock_enabled'] = Variable<bool>(isLockEnabled.value);
+    }
+    if (lockPinHash.present) {
+      map['lock_pin_hash'] = Variable<String>(lockPinHash.value);
+    }
+    if (lockPinSalt.present) {
+      map['lock_pin_salt'] = Variable<String>(lockPinSalt.value);
+    }
     return map;
   }
 
@@ -1837,7 +2003,10 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
           ..write('wantsTargetPct: $wantsTargetPct, ')
           ..write('savingsTargetPct: $savingsTargetPct, ')
           ..write('themeMode: $themeMode, ')
-          ..write('accentColor: $accentColor')
+          ..write('accentColor: $accentColor, ')
+          ..write('isLockEnabled: $isLockEnabled, ')
+          ..write('lockPinHash: $lockPinHash, ')
+          ..write('lockPinSalt: $lockPinSalt')
           ..write(')'))
         .toString();
   }
@@ -2738,6 +2907,9 @@ typedef $$AppSettingsTableTableCreateCompanionBuilder =
       Value<int> savingsTargetPct,
       Value<int> themeMode,
       Value<int> accentColor,
+      Value<bool> isLockEnabled,
+      Value<String?> lockPinHash,
+      Value<String?> lockPinSalt,
     });
 typedef $$AppSettingsTableTableUpdateCompanionBuilder =
     AppSettingsTableCompanion Function({
@@ -2748,6 +2920,9 @@ typedef $$AppSettingsTableTableUpdateCompanionBuilder =
       Value<int> savingsTargetPct,
       Value<int> themeMode,
       Value<int> accentColor,
+      Value<bool> isLockEnabled,
+      Value<String?> lockPinHash,
+      Value<String?> lockPinSalt,
     });
 
 class $$AppSettingsTableTableFilterComposer
@@ -2791,6 +2966,21 @@ class $$AppSettingsTableTableFilterComposer
 
   ColumnFilters<int> get accentColor => $composableBuilder(
     column: $table.accentColor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isLockEnabled => $composableBuilder(
+    column: $table.isLockEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lockPinHash => $composableBuilder(
+    column: $table.lockPinHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lockPinSalt => $composableBuilder(
+    column: $table.lockPinSalt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2838,6 +3028,21 @@ class $$AppSettingsTableTableOrderingComposer
     column: $table.accentColor,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isLockEnabled => $composableBuilder(
+    column: $table.isLockEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lockPinHash => $composableBuilder(
+    column: $table.lockPinHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lockPinSalt => $composableBuilder(
+    column: $table.lockPinSalt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableTableAnnotationComposer
@@ -2877,6 +3082,21 @@ class $$AppSettingsTableTableAnnotationComposer
 
   GeneratedColumn<int> get accentColor => $composableBuilder(
     column: $table.accentColor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isLockEnabled => $composableBuilder(
+    column: $table.isLockEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lockPinHash => $composableBuilder(
+    column: $table.lockPinHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lockPinSalt => $composableBuilder(
+    column: $table.lockPinSalt,
     builder: (column) => column,
   );
 }
@@ -2925,6 +3145,9 @@ class $$AppSettingsTableTableTableManager
                 Value<int> savingsTargetPct = const Value.absent(),
                 Value<int> themeMode = const Value.absent(),
                 Value<int> accentColor = const Value.absent(),
+                Value<bool> isLockEnabled = const Value.absent(),
+                Value<String?> lockPinHash = const Value.absent(),
+                Value<String?> lockPinSalt = const Value.absent(),
               }) => AppSettingsTableCompanion(
                 id: id,
                 selectedPeriod: selectedPeriod,
@@ -2933,6 +3156,9 @@ class $$AppSettingsTableTableTableManager
                 savingsTargetPct: savingsTargetPct,
                 themeMode: themeMode,
                 accentColor: accentColor,
+                isLockEnabled: isLockEnabled,
+                lockPinHash: lockPinHash,
+                lockPinSalt: lockPinSalt,
               ),
           createCompanionCallback:
               ({
@@ -2943,6 +3169,9 @@ class $$AppSettingsTableTableTableManager
                 Value<int> savingsTargetPct = const Value.absent(),
                 Value<int> themeMode = const Value.absent(),
                 Value<int> accentColor = const Value.absent(),
+                Value<bool> isLockEnabled = const Value.absent(),
+                Value<String?> lockPinHash = const Value.absent(),
+                Value<String?> lockPinSalt = const Value.absent(),
               }) => AppSettingsTableCompanion.insert(
                 id: id,
                 selectedPeriod: selectedPeriod,
@@ -2951,6 +3180,9 @@ class $$AppSettingsTableTableTableManager
                 savingsTargetPct: savingsTargetPct,
                 themeMode: themeMode,
                 accentColor: accentColor,
+                isLockEnabled: isLockEnabled,
+                lockPinHash: lockPinHash,
+                lockPinSalt: lockPinSalt,
               ),
           withReferenceMapper: (p0) => p0
               .map(

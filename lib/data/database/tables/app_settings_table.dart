@@ -18,6 +18,16 @@ class AppSettingsTable extends Table {
   IntColumn get accentColor =>
       integer().withDefault(const Constant(0xFF2E7D32))();
 
+  /// Whether a PIN is required to open the app. There's no server and no
+  /// user accounts — this is a local device lock, not authentication —
+  /// so [lockPinHash] is only ever compared against, never sent anywhere.
+  BoolColumn get isLockEnabled => boolean().withDefault(const Constant(false))();
+
+  /// SHA-256 hex digest of the PIN, salted with [lockPinSalt]. Null when
+  /// [isLockEnabled] is false.
+  TextColumn get lockPinHash => text().nullable()();
+  TextColumn get lockPinSalt => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

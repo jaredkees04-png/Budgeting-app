@@ -5,9 +5,67 @@ import 'package:intl/intl.dart';
 import '../../app/providers.dart';
 import '../../core/constants/theme_colors.dart';
 import '../../core/utils/backup_io/backup_io.dart';
+import '../lock/password_dialogs.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  /// Clears any snackbar still showing before queuing the next one, so a
+  /// quick sequence of actions (e.g. a rejected password immediately
+  /// followed by a successful one) doesn't leave a stale message sitting
+  /// in the queue for several seconds before the new one appears.
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _toggleLock(BuildContext context, WidgetRef ref, bool enable) async {
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    if (enable) {
+      final password = await showNewPasswordDialog(
+        context,
+        title: 'Set a password',
+      );
+      if (password == null) return;
+      await settingsRepo.enableLock(password);
+    } else {
+      final password = await showEnterPasswordDialog(
+        context,
+        title: 'Enter password to turn off lock',
+      );
+      if (password == null) return;
+      final correct = await settingsRepo.verifyPin(password);
+      if (!context.mounted) return;
+      if (!correct) {
+        _showMessage(context, 'Incorrect password');
+        return;
+      }
+      await settingsRepo.disableLock();
+    }
+  }
+
+  Future<void> _changePassword(BuildContext context, WidgetRef ref) async {
+    final settingsRepo = ref.read(settingsRepositoryProvider);
+    final current = await showEnterPasswordDialog(
+      context,
+      title: 'Enter your current password',
+    );
+    if (current == null) return;
+    final correct = await settingsRepo.verifyPin(current);
+    if (!context.mounted) return;
+    if (!correct) {
+      _showMessage(context, 'Incorrect password');
+      return;
+    }
+    final newPassword = await showNewPasswordDialog(
+      context,
+      title: 'Set a new password',
+    );
+    if (newPassword == null) return;
+    await settingsRepo.enableLock(newPassword);
+    if (context.mounted) _showMessage(context, 'Password changed');
+  }
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
     try {
@@ -15,17 +73,9 @@ class SettingsScreen extends ConsumerWidget {
       final filename =
           'budget-backup-${DateFormat('yyyy-MM-dd').format(DateTime.now())}.json';
       await saveBackupFile(filename, json);
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Backup saved')));
-      }
+      if (context.mounted) _showMessage(context, 'Backup saved');
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
-      }
+      if (context.mounted) _showMessage(context, 'Export failed: $e');
     }
   }
 
@@ -34,11 +84,7 @@ class SettingsScreen extends ConsumerWidget {
     try {
       content = await pickBackupFile();
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Could not read that file: $e')));
-      }
+      if (context.mounted) _showMessage(context, 'Could not read that file: $e');
       return;
     }
     if (content == null) return; // the picker was dismissed with no file chosen
@@ -69,17 +115,9 @@ class SettingsScreen extends ConsumerWidget {
 
     try {
       await ref.read(backupRepositoryProvider).importFromJson(content);
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Backup restored')));
-      }
+      if (context.mounted) _showMessage(context, 'Backup restored');
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Import failed: $e')));
-      }
+      if (context.mounted) _showMessage(context, 'Import failed: $e');
     }
   }
 
@@ -87,6 +125,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final accentColor = ref.watch(accentColorProvider);
+    final isLockEnabled = ref.watch(isLockEnabledProvider);
     final settingsRepo = ref.read(settingsRepositoryProvider);
 
     return Scaffold(
@@ -154,6 +193,33 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text('App Lock', style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 12),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Require a password to open the app'),
+                  subtitle: const Text(
+                    'A local passcode for this device only — there\'s no '
+                    'account and no way to recover it if forgotten, so '
+                    'keep a backup exported (see below) just in case',
+                  ),
+                  value: isLockEnabled,
+                  onChanged: (value) => _toggleLock(context, ref, value),
+                ),
+                if (isLockEnabled) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.password_outlined),
+                    title: const Text('Change password'),
+                    onTap: () => _changePassword(context, ref),
+                  ),
+                ],
+              ],
             ),
           ),
           const SizedBox(height: 24),

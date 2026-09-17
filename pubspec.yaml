@@ -30,6 +30,12 @@ dependencies:
   # Browser file download/picker for exporting and importing a backup.
   web: ^1.1.1
 
+  # Hashing the local app-lock PIN (never sent anywhere — no server exists).
+  crypto: ^3.0.6
+
+  # Parsing an imported bank-statement CSV for recurring-bill detection.
+  csv: ^6.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -10,6 +10,7 @@ import '../data/repositories/category_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/transaction_repository.dart';
 import '../domain/models/spending_summary.dart';
+import '../domain/services/app_lock_service.dart';
 import '../domain/services/savings_recommendation_service.dart';
 import '../domain/services/spending_breakdown_service.dart';
 
@@ -30,8 +31,13 @@ final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
   );
 });
 
+final appLockServiceProvider = Provider<AppLockService>((ref) => AppLockService());
+
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
-  return SettingsRepository(ref.watch(appDatabaseProvider));
+  return SettingsRepository(
+    ref.watch(appDatabaseProvider),
+    ref.watch(appLockServiceProvider),
+  );
 });
 
 final backupRepositoryProvider = Provider<BackupRepository>((ref) {
@@ -83,6 +89,16 @@ final accentColorProvider = Provider<Color>((ref) {
   final value = ref.watch(appSettingsProvider).value?.accentColor;
   return value == null ? kThemeColorOptions.first.color : Color(value);
 });
+
+final isLockEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(appSettingsProvider).value?.isLockEnabled ?? false;
+});
+
+/// Whether the current app session has passed the lock screen. Session-
+/// only by design (a plain in-memory StateProvider, not persisted) — a
+/// fresh launch of the PWA should always ask for the PIN again when a
+/// lock is set up, the same way a phone's own lock screen would.
+final isUnlockedProvider = StateProvider<bool>((ref) => false);
 
 final transactionsInPeriodProvider =
     StreamProvider<List<TransactionWithCategory>>((ref) {

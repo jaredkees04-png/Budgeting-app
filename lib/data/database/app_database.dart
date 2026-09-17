@@ -20,7 +20,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? connection.openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -96,6 +96,20 @@ class AppDatabase extends _$AppDatabase {
                   );
             }
             await customStatement('DROP TABLE recurring_bills');
+          }
+        }
+        if (from < 4) {
+          final settingsColumns = await customSelect(
+            "SELECT name FROM pragma_table_info('app_settings_table')",
+          ).map((row) => row.read<String>('name')).get();
+          if (!settingsColumns.contains('is_lock_enabled')) {
+            await m.addColumn(appSettingsTable, appSettingsTable.isLockEnabled);
+          }
+          if (!settingsColumns.contains('lock_pin_hash')) {
+            await m.addColumn(appSettingsTable, appSettingsTable.lockPinHash);
+          }
+          if (!settingsColumns.contains('lock_pin_salt')) {
+            await m.addColumn(appSettingsTable, appSettingsTable.lockPinSalt);
           }
         }
       },
