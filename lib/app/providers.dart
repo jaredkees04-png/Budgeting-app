@@ -5,6 +5,7 @@ import '../core/constants/theme_colors.dart';
 import '../core/utils/date_period.dart';
 import '../data/database/app_database.dart';
 import '../data/database/daos/transaction_dao.dart';
+import '../data/repositories/backup_repository.dart';
 import '../data/repositories/category_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/transaction_repository.dart';
@@ -31,6 +32,10 @@ final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
+});
+
+final backupRepositoryProvider = Provider<BackupRepository>((ref) {
+  return BackupRepository(ref.watch(appDatabaseProvider));
 });
 
 final spendingBreakdownServiceProvider =

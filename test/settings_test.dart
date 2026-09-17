@@ -77,4 +77,32 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 1));
   });
+
+  testWidgets('Settings shows a Backup & Restore section', (tester) async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        child: const BudgetingApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.settings_outlined));
+    await tester.pumpAndSettle();
+
+    // Actually invoking export/import here would hit real platform
+    // channels (path_provider, a browser file dialog) that don't exist in
+    // a widget test — BackupRepository's own round-trip logic is covered
+    // separately in test/data/backup_repository_test.dart. This just
+    // checks the entry points are present and correctly labeled.
+    expect(find.text('Backup & Restore'), findsOneWidget);
+    expect(find.text('Export data'), findsOneWidget);
+    expect(find.text('Import data'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 1));
+  });
 }
