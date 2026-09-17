@@ -6,6 +6,7 @@ import '../../core/utils/category_visuals.dart';
 import '../../core/utils/money.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/tables/categories_table.dart' show BudgetGroup;
+import '../bank_import/bank_import_screen.dart';
 import 'category_edit_dialog.dart';
 
 /// Manages categories, and doubles as "Bills": any category — built-in
@@ -112,7 +113,20 @@ class CategoryListScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(activeCategoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bills')),
+      appBar: AppBar(
+        title: const Text('Bills'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_balance_outlined),
+            tooltip: 'Import from bank statement',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const BankImportScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'addCategoryFab',
         onPressed: () => _addCategory(context, ref),
