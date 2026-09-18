@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/providers.dart';
+import '../../core/constants/background_colors.dart';
 import '../../core/constants/theme_colors.dart';
 import '../../core/utils/backup_io/backup_io.dart';
 import '../lock/password_dialogs.dart';
@@ -125,8 +126,10 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final accentColor = ref.watch(accentColorProvider);
+    final backgroundOption = ref.watch(backgroundOptionProvider);
     final isLockEnabled = ref.watch(isLockEnabledProvider);
     final settingsRepo = ref.read(settingsRepositoryProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -187,6 +190,59 @@ class SettingsScreen extends ConsumerWidget {
                                 ? const Icon(Icons.check, color: Colors.white)
                                 : null,
                           ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text('Background'),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: kBackgroundOptions.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final option = entry.value;
+                      final selected = option.name == backgroundOption.name;
+                      final swatchColor = isDark ? option.dark : option.light;
+                      return GestureDetector(
+                        onTap: () => settingsRepo.updateBackgroundOption(index),
+                        child: Tooltip(
+                          message: option.name,
+                          child: option.isDefault
+                              ? ClipOval(
+                                  child: Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Colors.white, Colors.black],
+                                      ),
+                                    ),
+                                    child: selected
+                                        ? const Icon(
+                                            Icons.check,
+                                            color: Colors.grey,
+                                          )
+                                        : null,
+                                  ),
+                                )
+                              : CircleAvatar(
+                                  backgroundColor: swatchColor,
+                                  radius: 18,
+                                  child: selected
+                                      ? Icon(
+                                          Icons.check,
+                                          color:
+                                              ThemeData.estimateBrightnessForColor(
+                                                    swatchColor!,
+                                                  ) ==
+                                                  Brightness.dark
+                                              ? Colors.white
+                                              : Colors.black,
+                                        )
+                                      : null,
+                                ),
                         ),
                       );
                     }).toList(),

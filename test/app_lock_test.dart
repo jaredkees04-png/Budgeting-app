@@ -120,7 +120,11 @@ void main() {
       expect(find.text('Incorrect password'), findsOneWidget);
       expect(find.text('Change password'), findsOneWidget);
 
-      // Changing the password requires the current one first.
+      // Changing the password requires the current one first. The
+      // Background section above this card can push it below the fold in
+      // a lazily-built ListView, so scroll it into view before tapping.
+      await tester.scrollUntilVisible(find.text('Change password'), 200);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Change password'));
       await tester.pumpAndSettle();
       await tester.enterText(find.widgetWithText(TextField, 'Password'), '1234');

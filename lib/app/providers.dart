@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' show Color, ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/constants/background_colors.dart';
 import '../core/constants/theme_colors.dart';
 import '../core/utils/date_period.dart';
 import '../data/database/app_database.dart';
@@ -88,6 +89,14 @@ final themeModeProvider = Provider<ThemeMode>((ref) {
 final accentColorProvider = Provider<Color>((ref) {
   final value = ref.watch(appSettingsProvider).value?.accentColor;
   return value == null ? kThemeColorOptions.first.color : Color(value);
+});
+
+final backgroundOptionProvider = Provider<BackgroundOption>((ref) {
+  final index = ref.watch(appSettingsProvider).value?.backgroundOptionIndex;
+  if (index == null || index < 0 || index >= kBackgroundOptions.length) {
+    return kBackgroundOptions.first;
+  }
+  return kBackgroundOptions[index];
 });
 
 final isLockEnabledProvider = Provider<bool>((ref) {

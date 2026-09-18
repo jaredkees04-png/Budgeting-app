@@ -67,6 +67,13 @@ class SettingsRepository {
         .write(AppSettingsTableCompanion(accentColor: Value(argbValue)));
   }
 
+  /// [index] is an index into `kBackgroundOptions`.
+  Future<void> updateBackgroundOption(int index) {
+    return _db.update(_db.appSettingsTable).write(
+      AppSettingsTableCompanion(backgroundOptionIndex: Value(index)),
+    );
+  }
+
   /// Turns app-lock on with [pin], replacing any previous PIN.
   Future<void> enableLock(String pin) {
     final salt = _lockService.generateSalt();
