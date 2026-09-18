@@ -1497,17 +1497,6 @@ class $AppSettingsTableTable extends AppSettingsTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _backgroundOptionIndexMeta =
-      const VerificationMeta('backgroundOptionIndex');
-  @override
-  late final GeneratedColumn<int> backgroundOptionIndex = GeneratedColumn<int>(
-    'background_option_index',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1520,7 +1509,6 @@ class $AppSettingsTableTable extends AppSettingsTable
     isLockEnabled,
     lockPinHash,
     lockPinSalt,
-    backgroundOptionIndex,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1615,15 +1603,6 @@ class $AppSettingsTableTable extends AppSettingsTable
         ),
       );
     }
-    if (data.containsKey('background_option_index')) {
-      context.handle(
-        _backgroundOptionIndexMeta,
-        backgroundOptionIndex.isAcceptableOrUnknown(
-          data['background_option_index']!,
-          _backgroundOptionIndexMeta,
-        ),
-      );
-    }
     return context;
   }
 
@@ -1673,10 +1652,6 @@ class $AppSettingsTableTable extends AppSettingsTable
         DriftSqlType.string,
         data['${effectivePrefix}lock_pin_salt'],
       ),
-      backgroundOptionIndex: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}background_option_index'],
-      )!,
     );
   }
 
@@ -1710,12 +1685,6 @@ class AppSettingsTableData extends DataClass
   /// [isLockEnabled] is false.
   final String? lockPinHash;
   final String? lockPinSalt;
-
-  /// Index into `kBackgroundOptions`. 0 is "Default" — Material's own
-  /// accent-tinted surface colors, unchanged from before this setting
-  /// existed — so a fresh install and anyone who never opens Settings
-  /// looks exactly as before.
-  final int backgroundOptionIndex;
   const AppSettingsTableData({
     required this.id,
     required this.selectedPeriod,
@@ -1727,7 +1696,6 @@ class AppSettingsTableData extends DataClass
     required this.isLockEnabled,
     this.lockPinHash,
     this.lockPinSalt,
-    required this.backgroundOptionIndex,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1746,7 +1714,6 @@ class AppSettingsTableData extends DataClass
     if (!nullToAbsent || lockPinSalt != null) {
       map['lock_pin_salt'] = Variable<String>(lockPinSalt);
     }
-    map['background_option_index'] = Variable<int>(backgroundOptionIndex);
     return map;
   }
 
@@ -1766,7 +1733,6 @@ class AppSettingsTableData extends DataClass
       lockPinSalt: lockPinSalt == null && nullToAbsent
           ? const Value.absent()
           : Value(lockPinSalt),
-      backgroundOptionIndex: Value(backgroundOptionIndex),
     );
   }
 
@@ -1786,9 +1752,6 @@ class AppSettingsTableData extends DataClass
       isLockEnabled: serializer.fromJson<bool>(json['isLockEnabled']),
       lockPinHash: serializer.fromJson<String?>(json['lockPinHash']),
       lockPinSalt: serializer.fromJson<String?>(json['lockPinSalt']),
-      backgroundOptionIndex: serializer.fromJson<int>(
-        json['backgroundOptionIndex'],
-      ),
     );
   }
   @override
@@ -1805,7 +1768,6 @@ class AppSettingsTableData extends DataClass
       'isLockEnabled': serializer.toJson<bool>(isLockEnabled),
       'lockPinHash': serializer.toJson<String?>(lockPinHash),
       'lockPinSalt': serializer.toJson<String?>(lockPinSalt),
-      'backgroundOptionIndex': serializer.toJson<int>(backgroundOptionIndex),
     };
   }
 
@@ -1820,7 +1782,6 @@ class AppSettingsTableData extends DataClass
     bool? isLockEnabled,
     Value<String?> lockPinHash = const Value.absent(),
     Value<String?> lockPinSalt = const Value.absent(),
-    int? backgroundOptionIndex,
   }) => AppSettingsTableData(
     id: id ?? this.id,
     selectedPeriod: selectedPeriod ?? this.selectedPeriod,
@@ -1832,7 +1793,6 @@ class AppSettingsTableData extends DataClass
     isLockEnabled: isLockEnabled ?? this.isLockEnabled,
     lockPinHash: lockPinHash.present ? lockPinHash.value : this.lockPinHash,
     lockPinSalt: lockPinSalt.present ? lockPinSalt.value : this.lockPinSalt,
-    backgroundOptionIndex: backgroundOptionIndex ?? this.backgroundOptionIndex,
   );
   AppSettingsTableData copyWithCompanion(AppSettingsTableCompanion data) {
     return AppSettingsTableData(
@@ -1862,9 +1822,6 @@ class AppSettingsTableData extends DataClass
       lockPinSalt: data.lockPinSalt.present
           ? data.lockPinSalt.value
           : this.lockPinSalt,
-      backgroundOptionIndex: data.backgroundOptionIndex.present
-          ? data.backgroundOptionIndex.value
-          : this.backgroundOptionIndex,
     );
   }
 
@@ -1880,8 +1837,7 @@ class AppSettingsTableData extends DataClass
           ..write('accentColor: $accentColor, ')
           ..write('isLockEnabled: $isLockEnabled, ')
           ..write('lockPinHash: $lockPinHash, ')
-          ..write('lockPinSalt: $lockPinSalt, ')
-          ..write('backgroundOptionIndex: $backgroundOptionIndex')
+          ..write('lockPinSalt: $lockPinSalt')
           ..write(')'))
         .toString();
   }
@@ -1898,7 +1854,6 @@ class AppSettingsTableData extends DataClass
     isLockEnabled,
     lockPinHash,
     lockPinSalt,
-    backgroundOptionIndex,
   );
   @override
   bool operator ==(Object other) =>
@@ -1913,8 +1868,7 @@ class AppSettingsTableData extends DataClass
           other.accentColor == this.accentColor &&
           other.isLockEnabled == this.isLockEnabled &&
           other.lockPinHash == this.lockPinHash &&
-          other.lockPinSalt == this.lockPinSalt &&
-          other.backgroundOptionIndex == this.backgroundOptionIndex);
+          other.lockPinSalt == this.lockPinSalt);
 }
 
 class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
@@ -1928,7 +1882,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
   final Value<bool> isLockEnabled;
   final Value<String?> lockPinHash;
   final Value<String?> lockPinSalt;
-  final Value<int> backgroundOptionIndex;
   const AppSettingsTableCompanion({
     this.id = const Value.absent(),
     this.selectedPeriod = const Value.absent(),
@@ -1940,7 +1893,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     this.isLockEnabled = const Value.absent(),
     this.lockPinHash = const Value.absent(),
     this.lockPinSalt = const Value.absent(),
-    this.backgroundOptionIndex = const Value.absent(),
   });
   AppSettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -1953,7 +1905,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     this.isLockEnabled = const Value.absent(),
     this.lockPinHash = const Value.absent(),
     this.lockPinSalt = const Value.absent(),
-    this.backgroundOptionIndex = const Value.absent(),
   });
   static Insertable<AppSettingsTableData> custom({
     Expression<int>? id,
@@ -1966,7 +1917,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Expression<bool>? isLockEnabled,
     Expression<String>? lockPinHash,
     Expression<String>? lockPinSalt,
-    Expression<int>? backgroundOptionIndex,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1979,8 +1929,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
       if (isLockEnabled != null) 'is_lock_enabled': isLockEnabled,
       if (lockPinHash != null) 'lock_pin_hash': lockPinHash,
       if (lockPinSalt != null) 'lock_pin_salt': lockPinSalt,
-      if (backgroundOptionIndex != null)
-        'background_option_index': backgroundOptionIndex,
     });
   }
 
@@ -1995,7 +1943,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Value<bool>? isLockEnabled,
     Value<String?>? lockPinHash,
     Value<String?>? lockPinSalt,
-    Value<int>? backgroundOptionIndex,
   }) {
     return AppSettingsTableCompanion(
       id: id ?? this.id,
@@ -2008,8 +1955,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
       isLockEnabled: isLockEnabled ?? this.isLockEnabled,
       lockPinHash: lockPinHash ?? this.lockPinHash,
       lockPinSalt: lockPinSalt ?? this.lockPinSalt,
-      backgroundOptionIndex:
-          backgroundOptionIndex ?? this.backgroundOptionIndex,
     );
   }
 
@@ -2046,11 +1991,6 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     if (lockPinSalt.present) {
       map['lock_pin_salt'] = Variable<String>(lockPinSalt.value);
     }
-    if (backgroundOptionIndex.present) {
-      map['background_option_index'] = Variable<int>(
-        backgroundOptionIndex.value,
-      );
-    }
     return map;
   }
 
@@ -2066,8 +2006,7 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
           ..write('accentColor: $accentColor, ')
           ..write('isLockEnabled: $isLockEnabled, ')
           ..write('lockPinHash: $lockPinHash, ')
-          ..write('lockPinSalt: $lockPinSalt, ')
-          ..write('backgroundOptionIndex: $backgroundOptionIndex')
+          ..write('lockPinSalt: $lockPinSalt')
           ..write(')'))
         .toString();
   }
@@ -2971,7 +2910,6 @@ typedef $$AppSettingsTableTableCreateCompanionBuilder =
       Value<bool> isLockEnabled,
       Value<String?> lockPinHash,
       Value<String?> lockPinSalt,
-      Value<int> backgroundOptionIndex,
     });
 typedef $$AppSettingsTableTableUpdateCompanionBuilder =
     AppSettingsTableCompanion Function({
@@ -2985,7 +2923,6 @@ typedef $$AppSettingsTableTableUpdateCompanionBuilder =
       Value<bool> isLockEnabled,
       Value<String?> lockPinHash,
       Value<String?> lockPinSalt,
-      Value<int> backgroundOptionIndex,
     });
 
 class $$AppSettingsTableTableFilterComposer
@@ -3044,11 +2981,6 @@ class $$AppSettingsTableTableFilterComposer
 
   ColumnFilters<String> get lockPinSalt => $composableBuilder(
     column: $table.lockPinSalt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get backgroundOptionIndex => $composableBuilder(
-    column: $table.backgroundOptionIndex,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3111,11 +3043,6 @@ class $$AppSettingsTableTableOrderingComposer
     column: $table.lockPinSalt,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<int> get backgroundOptionIndex => $composableBuilder(
-    column: $table.backgroundOptionIndex,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$AppSettingsTableTableAnnotationComposer
@@ -3172,11 +3099,6 @@ class $$AppSettingsTableTableAnnotationComposer
     column: $table.lockPinSalt,
     builder: (column) => column,
   );
-
-  GeneratedColumn<int> get backgroundOptionIndex => $composableBuilder(
-    column: $table.backgroundOptionIndex,
-    builder: (column) => column,
-  );
 }
 
 class $$AppSettingsTableTableTableManager
@@ -3226,7 +3148,6 @@ class $$AppSettingsTableTableTableManager
                 Value<bool> isLockEnabled = const Value.absent(),
                 Value<String?> lockPinHash = const Value.absent(),
                 Value<String?> lockPinSalt = const Value.absent(),
-                Value<int> backgroundOptionIndex = const Value.absent(),
               }) => AppSettingsTableCompanion(
                 id: id,
                 selectedPeriod: selectedPeriod,
@@ -3238,7 +3159,6 @@ class $$AppSettingsTableTableTableManager
                 isLockEnabled: isLockEnabled,
                 lockPinHash: lockPinHash,
                 lockPinSalt: lockPinSalt,
-                backgroundOptionIndex: backgroundOptionIndex,
               ),
           createCompanionCallback:
               ({
@@ -3252,7 +3172,6 @@ class $$AppSettingsTableTableTableManager
                 Value<bool> isLockEnabled = const Value.absent(),
                 Value<String?> lockPinHash = const Value.absent(),
                 Value<String?> lockPinSalt = const Value.absent(),
-                Value<int> backgroundOptionIndex = const Value.absent(),
               }) => AppSettingsTableCompanion.insert(
                 id: id,
                 selectedPeriod: selectedPeriod,
@@ -3264,7 +3183,6 @@ class $$AppSettingsTableTableTableManager
                 isLockEnabled: isLockEnabled,
                 lockPinHash: lockPinHash,
                 lockPinSalt: lockPinSalt,
-                backgroundOptionIndex: backgroundOptionIndex,
               ),
           withReferenceMapper: (p0) => p0
               .map(

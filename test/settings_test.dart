@@ -78,63 +78,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1));
   });
 
-  testWidgets('changing background option updates surface color and persists', (
-    tester,
-  ) async {
-    final db = AppDatabase(NativeDatabase.memory());
-    addTearDown(db.close);
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
-        child: const BudgetingApp(),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.settings_outlined));
-    await tester.pumpAndSettle();
-
-    final defaultSurface =
-        tester.widget<MaterialApp>(find.byType(MaterialApp)).theme!.colorScheme.surface;
-
-    await tester.tap(find.byTooltip('Pure'));
-    await tester.pumpAndSettle();
-
-    final theme = tester.widget<MaterialApp>(find.byType(MaterialApp)).theme!;
-    expect(
-      theme.colorScheme.surface,
-      isNot(equals(defaultSurface)),
-      reason: 'Picking Pure should change the surface color away from the default',
-    );
-    expect(
-      theme.scaffoldBackgroundColor,
-      theme.colorScheme.surface,
-      reason: 'The scaffold background should track the chosen surface color',
-    );
-
-    // Rebuilding the whole app (simulating a reload) should show the
-    // persisted choice, not reset to the default background.
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(milliseconds: 1));
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
-        child: const BudgetingApp(),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      tester.widget<MaterialApp>(find.byType(MaterialApp)).theme!.colorScheme.surface,
-      theme.colorScheme.surface,
-      reason: 'Background choice should persist across an app restart',
-    );
-
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(milliseconds: 1));
-  });
-
   testWidgets('Settings shows a Backup & Restore section', (tester) async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
@@ -148,12 +91,6 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(Icons.settings_outlined));
-    await tester.pumpAndSettle();
-
-    // The Background section (added above Backup & Restore) pushes it
-    // below the fold, so a lazily-built ListView won't have it in the
-    // tree yet without scrolling to it first.
-    await tester.scrollUntilVisible(find.text('Backup & Restore'), 200);
     await tester.pumpAndSettle();
 
     // Actually invoking export/import here would hit real platform

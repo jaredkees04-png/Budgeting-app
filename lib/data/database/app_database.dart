@@ -20,7 +20,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? connection.openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -110,17 +110,6 @@ class AppDatabase extends _$AppDatabase {
           }
           if (!settingsColumns.contains('lock_pin_salt')) {
             await m.addColumn(appSettingsTable, appSettingsTable.lockPinSalt);
-          }
-        }
-        if (from < 5) {
-          final settingsColumns = await customSelect(
-            "SELECT name FROM pragma_table_info('app_settings_table')",
-          ).map((row) => row.read<String>('name')).get();
-          if (!settingsColumns.contains('background_option_index')) {
-            await m.addColumn(
-              appSettingsTable,
-              appSettingsTable.backgroundOptionIndex,
-            );
           }
         }
       },

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/utils/theme_builder.dart';
 import '../features/lock/app_lock_screen.dart';
 import 'home_shell.dart';
 import 'providers.dart';
@@ -13,20 +12,18 @@ class BudgetingApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final accentColor = ref.watch(accentColorProvider);
     final themeMode = ref.watch(themeModeProvider);
-    final background = ref.watch(backgroundOptionProvider);
 
     return MaterialApp(
       title: 'Budget Tracker',
       themeMode: themeMode,
-      theme: buildAppTheme(
-        accentColor: accentColor,
-        brightness: Brightness.light,
-        background: background,
+      theme: ThemeData(
+        colorSchemeSeed: accentColor,
+        useMaterial3: true,
       ),
-      darkTheme: buildAppTheme(
-        accentColor: accentColor,
+      darkTheme: ThemeData(
+        colorSchemeSeed: accentColor,
         brightness: Brightness.dark,
-        background: background,
+        useMaterial3: true,
       ),
       home: const _AppGate(),
     );

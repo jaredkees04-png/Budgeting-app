@@ -28,12 +28,6 @@ class AppSettingsTable extends Table {
   TextColumn get lockPinHash => text().nullable()();
   TextColumn get lockPinSalt => text().nullable()();
 
-  /// Index into `kBackgroundOptions`. 0 is "Default" — Material's own
-  /// accent-tinted surface colors, unchanged from before this setting
-  /// existed — so a fresh install and anyone who never opens Settings
-  /// looks exactly as before.
-  IntColumn get backgroundOptionIndex => integer().withDefault(const Constant(0))();
-
   @override
   Set<Column> get primaryKey => {id};
 }
